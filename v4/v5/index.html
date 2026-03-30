@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V5 Visual Boards</title>
+  <style>
+    body { margin: 0; background: #050505; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 64px 24px; }
+    h1 { font-size: 28px; margin: 0 0 16px; }
+    p { color: rgba(255,255,255,0.55); margin: 0 0 32px; line-height: 1.6; }
+    .list { display: grid; gap: 12px; }
+    a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(255,255,255,0.03);
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+    a:hover { transform: translateY(-1px); border-color: rgba(132,204,22,0.5); background: rgba(255,255,255,0.05); }
+    .tag { font-size: 12px; color: rgba(255,255,255,0.55); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>V5 视觉板块方案（本地预览）</h1>
+    <p>以下页面来自你提供的 3 个 HTML 视觉方案，已原样放到项目 <code>public/v5/</code>。直接点开即可预览。</p>
+    <div class="list">
+      <a href="./v5-hybrid.html">
+        <div>
+          <div>Hybrid 综合版（V9 + V12 + V16）</div>
+          <div class="tag">一页融合：V9 冲击力 + V12 参数化卡片 + V16 控制中心</div>
+        </div>
+        <div class="tag">Open</div>
+      </a>
+      <a href="./v9-index.html">
+        <div>
+          <div>V9 Evolution</div>
+          <div class="tag">Tailwind CDN + Lucide CDN</div>
+        </div>
+        <div class="tag">Open</div>
+      </a>
+      <a href="./v12-index.html">
+        <div>
+          <div>V12 Parametric Adaptive</div>
+          <div class="tag">Tailwind CDN + Lucide CDN</div>
+        </div>
+        <div class="tag">Open</div>
+      </a>
+      <a href="./v16-index.html">
+        <div>
+          <div>V16 Hyper-Fusion</div>
+          <div class="tag">Tailwind CDN + Lucide CDN</div>
+        </div>
+        <div class="tag">Open</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

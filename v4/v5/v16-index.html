@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="filename" content="index.html">
+    <title>W/A 2026 - Neural Hub v13 Hyper-Fusion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&family=Space+Grotesk:wght@300;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#050505',
+                        brand: '#00FFD1', /* 电感青 */
+                        accent: '#E0FF00', /* 极光绿 */
+                        surface: '#0F0F0F',
+                        border: 'rgba(255,255,255,0.08)'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        'pulse-dot': {
+                            '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                            '50%': { opacity: 0.5, transform: 'scale(0.8)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --master-width: 1440px; }
+        body { background: #050505; color: #fff; overflow-x: hidden; }
+        
+        /* 1440px 智能缩放引擎 */
+        .viewport-guard {
+            width: var(--master-width);
+            margin: 0 auto;
+            position: relative;
+            transform-origin: top center;
+            transition: transform 0.1s ease-out;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            visibility: hidden;
+        }
+
+        .cyber-grid {
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-module {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        .glass-module:hover {
+            border-color: rgba(0, 255, 209, 0.3);
+            background: rgba(255,255,255,0.06);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* 侧边功能抽屉 */
+        #side-hub {
+            transform: translateX(100%);
+            transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        #side-hub.active { transform: translateX(0); }
+
+        .stat-glow { filter: drop-shadow(0 0 15px rgba(0, 255, 209, 0.4)); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <!-- 噪点与网格背景 -->
+    <div class="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
+    <div class="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style="background-image: url('https://grainy-gradients.vercel.app/noise.svg');"></div>
+
+    <!-- 多语言/节点集成中心 (翻译的口子) -->
+    <div id="side-hub" class="fixed top-0 right-0 w-[500px] h-full bg-[#080808] z-[200] border-l border-white/10 shadow-3xl p-12">
+        <div class="flex justify-between items-center mb-16 px-4">
+            <div>
+                <h3 class="font-mono text-brand text-xs tracking-[0.4em] uppercase">Control Center</h3>
+                <p class="text-white/30 text-[10px] mt-1 italic">Switching localization protocols</p>
+            </div>
+            <button id="closeHub" class="w-10 h-10 border border-white/5 rounded-full flex items-center justify-center hover:bg-white hover:text-dark transition-all">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="group cursor-pointer p-8 bg-brand/5 border border-brand relative">
+                <div class="absolute top-4 right-4 text-[10px] text-brand font-mono">NODE_01_CN</div>
+                <div class="text-4xl font-black flex items-center gap-4 italic uppercase">简体中文 <i data-lucide="activity" class="w-6 h-6 animate-pulse"></i></div>
+                <p class="text-[10px] text-brand/40 mt-4 leading-relaxed">System core is optimized for localized deployment.</p>
+            </div>
+            <div class="group cursor-pointer p-8 bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all">
+                <div class="text-4xl font-black text-white/20 group-hover:text-white flex items-center gap-4 italic uppercase transition-colors">English <span class="text-xs font-mono opacity-20">US/GLOBAL</span></div>
+            </div>
+            <div class="group cursor-pointer p-8 bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all">
+                <div class="text-4xl font-black text-white/20 group-hover:text-white flex items-center gap-4 italic uppercase transition-colors">日本語 <span class="text-xs font-mono opacity-20">JP_EAST</span></div>
+            </div>
+            <div class="group cursor-pointer p-8 bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all">
+                <div class="text-4xl font-black text-white/20 group-hover:text-white flex items-center gap-4 italic uppercase transition-colors">繁体中文 <span class="text-xs font-mono opacity-20">HK/TW</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="viewport-guard" id="main-frame">
+        
+        <!-- Header -->
+        <header class="h-32 px-12 flex items-center justify-between relative z-50">
+            <div class="flex items-center gap-12">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand rounded-sm rotate-45 flex items-center justify-center">
+                        <div class="w-5 h-5 border-2 border-dark -rotate-45"></div>
+                    </div>
+                    <span class="text-3xl font-black tracking-tighter italic">W/A PROTOCOL</span>
+                </div>
+                <!-- 导航结合 v11 的功能性 -->
+                <nav class="hidden xl:flex items-center gap-8 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+                    <a href="#" class="text-white border-b-2 border-brand pb-1">Mainframe</a>
+                    <a href="#core-modules" class="hover:text-white transition-colors">Modules</a>
+                    <a href="#community" class="hover:text-white transition-colors">Node_Network</a>
+                    <a href="#" class="hover:text-white transition-colors italic">Audit_Report</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="langTrigger" class="h-14 px-8 border border-white/10 flex items-center gap-4 group hover:border-brand/50 transition-all">
+                    <i data-lucide="languages" class="w-4 h-4 text-brand"></i>
+                    <span class="text-[10px] font-bold tracking-widest italic group-hover:text-brand transition-colors">MULTI_LANG</span>
+                </button>
+                <div class="w-14 h-14 bg-white flex items-center justify-center cursor-pointer hover:bg-brand transition-all">
+                    <i data-lucide="plus" class="text-dark"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section: v9 冲击力与功能的结合 -->
+        <main class="px-12 pt-16 pb-32">
+            <div class="grid grid-cols-12 gap-12 items-end mb-32">
+                <div class="col-span-9">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="h-px w-20 bg-brand/30"></span>
+                        <span class="text-[10px] font-mono tracking-[0.5em] text-brand">ESTABLISHED 2026 // SYSTEM ARCHITECTURE</span>
+                    </div>
+                    <h1 class="text-[160px] leading-[0.8] font-black italic tracking-tighter uppercase">
+                        赋能品牌<br/>
+                        <span class="text-transparent" style="-webkit-text-stroke: 1.5px rgba(255,255,255,0.8)">创造</span> <span class="text-brand">卓越</span>
+                    </h1>
+                </div>
+                <div class="col-span-3 text-right">
+                    <div class="stat-glow mb-12">
+                        <div class="text-[80px] font-black tracking-tighter leading-none italic">100K+</div>
+                        <div class="text-[10px] uppercase font-mono text-white/30 tracking-widest mt-2">Active_Validation_Nodes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 核心功能矩阵 (融合 v11/v12 模块) -->
+            <section id="core-modules" class="grid grid-cols-4 gap-8">
+                
+                <!-- 模块：白皮书 (大尺寸核心) -->
+                <div class="glass-module col-span-2 row-span-2 p-12 flex flex-col justify-between overflow-hidden relative group">
+                    <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80" 
+                         class="absolute inset-0 w-full h-full object-cover opacity-10 grayscale group-hover:grayscale-0 group-hover:opacity-20 transition-all duration-1000">
+                    <div class="relative z-10">
+                        <div class="w-12 h-1 bg-brand mb-10"></div>
+                        <h2 class="text-6xl font-black italic tracking-tighter leading-none mb-8">系统白皮书<br/><span class="text-white/20">CORE_MANIFESTO</span></h2>
+                        <p class="text-lg text-white/50 leading-relaxed max-w-sm italic">沉浸式解读分布式算法机制，这是您掌握 Web4 治理权力的唯一权威入口。包含年度技术规划与通证模型演进。</p>
+                    </div>
+                    <div class="relative z-10 flex items-center gap-8 mt-12">
+                        <button class="h-16 px-10 bg-white text-dark font-black italic uppercase tracking-widest text-xs hover:bg-brand transition-all">Download .PDF</button>
+                        <span class="text-[10px] font-mono text-white/20 uppercase tracking-[0.3em]">Version 4.2.0-Alpha</span>
+                    </div>
+                </div>
+
+                <!-- 模块：合约校验 (功能型) -->
+                <div class="glass-module p-10 flex flex-col">
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="w-14 h-14 bg-brand/10 border border-brand/20 flex items-center justify-center">
+                            <i data-lucide="cpu" class="text-brand w-6 h-6"></i>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] font-mono text-brand mb-1">STABLE</span>
+                            <div class="w-2 h-2 rounded-full bg-brand animate-pulse-dot shadow-[0_0_10px_#00FFD1]"></div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black italic mb-4">合约校验</h3>
+                    <p class="text-white/40 text-xs italic leading-relaxed">自动化安全扫描与治理合约验证，确保每一行代码都符合开源共识。</p>
+                </div>
+
+                <!-- 模块：资料库 -->
+                <div class="glass-module p-10 flex flex-col">
+                    <div class="mb-12 opacity-30"><i data-lucide="binary" class="w-10 h-10"></i></div>
+                    <h3 class="text-2xl font-black italic mb-4">开发者资料库</h3>
+                    <p class="text-white/40 text-xs italic leading-relaxed">全量 SDK、API 文档以及技术工法包，赋能开发者构建上层建筑。</p>
+                    <div class="mt-auto pt-8 flex gap-2">
+                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div class="w-2/3 h-full bg-brand/30"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模块：安全课堂 -->
+                <div class="glass-module p-10 bg-accent/5 border-accent/10">
+                    <div class="flex items-center gap-3 mb-10 text-accent">
+                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                        <span class="text-[10px] font-mono tracking-widest uppercase">EDU_LEVEL_01</span>
+                    </div>
+                    <h3 class="text-2xl font-black italic mb-4">安全课堂</h3>
+                    <p class="text-white/40 text-xs italic leading-relaxed">从零开始掌握防钓鱼、助记词保管与智能合约交互安全规范。</p>
+                </div>
+
+                <!-- 模块：公告中心 (实时滚动感) -->
+                <div class="glass-module p-10 bg-[#111]">
+                    <div class="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
+                        <h3 class="text-xl font-black italic">公告中心</h3>
+                        <i data-lucide="rss" class="w-4 h-4 text-white/30"></i>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="group cursor-pointer">
+                            <div class="text-[10px] text-white/20 mb-1 italic">2026.04.12</div>
+                            <div class="text-[11px] font-bold group-hover:text-brand transition-colors">核心架构升级至 v4.3 版本的通知</div>
+                        </div>
+                        <div class="group cursor-pointer">
+                            <div class="text-[10px] text-white/20 mb-1 italic">2026.04.09</div>
+                            <div class="text-[11px] font-bold group-hover:text-brand transition-colors">关于首批社区节点分片治理的公示表</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 二次聚合区：社区与FAQ (v12 增强版) -->
+            <section id="community" class="mt-32 grid grid-cols-12 gap-8 items-start">
+                
+                <!-- 社交矩阵 (Bento Grid 延伸) -->
+                <div class="col-span-5 grid grid-cols-2 gap-4">
+                    <div class="col-span-2 glass-module p-8 flex justify-between items-center group cursor-pointer hover:bg-brand">
+                        <div class="flex items-center gap-6">
+                            <i data-lucide="twitter" class="w-8 h-8 group-hover:text-dark"></i>
+                            <span class="text-2xl font-black italic group-hover:text-dark uppercase">Twitter_Hub</span>
+                        </div>
+                        <i data-lucide="arrow-up-right" class="group-hover:text-dark"></i>
+                    </div>
+                    <div class="glass-module p-8 group cursor-pointer">
+                        <i data-lucide="github" class="w-6 h-6 mb-6 opacity-30 group-hover:opacity-100 group-hover:text-brand"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">Git_Repo</div>
+                    </div>
+                    <div class="glass-module p-8 group cursor-pointer">
+                        <i data-lucide="send" class="w-6 h-6 mb-6 opacity-30 group-hover:opacity-100 group-hover:text-brand"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">Telegram</div>
+                    </div>
+                </div>
+
+                <!-- 百问百答 (FAQ 特化面板) -->
+                <div class="col-span-7 glass-module p-16 bg-white/[0.01]">
+                    <div class="text-[10px] font-mono text-brand mb-10 tracking-[0.5em] uppercase">Knowledge Base // FAQ</div>
+                    <h2 class="text-7xl font-black italic mb-16 tracking-tighter">百问百答</h2>
+                    <div class="space-y-12">
+                        <div class="border-b border-white/5 pb-8">
+                            <h4 class="text-xl font-black italic italic mb-4 uppercase"># 如何确保我的品牌资产在协议中的唯一性？</h4>
+                            <p class="text-sm text-white/30 italic leading-relaxed">每个品牌节点通过非对称加密生成独立的 DNA 指纹，在全局共识层进行上链锚定。即使主协议版本更新，您的核心资产指纹也将保持数学上的永久唯一。</p>
+                        </div>
+                        <div class="border-b border-white/5 pb-8 opacity-50 hover:opacity-100 transition-opacity">
+                            <h4 class="text-xl font-black italic italic mb-4 uppercase"># 节点申请的准入门槛是什么？</h4>
+                            <p class="text-sm text-white/30 italic leading-relaxed">申请者需提交至少 512GB 的验证容量并持有对应的身份凭证。审核期通常为 72 个工作小时。</p>
+                        </div>
+                    </div>
+                    <button class="mt-16 flex items-center gap-4 text-[10px] font-black tracking-[0.3em] uppercase group">
+                        <span class="pb-1 border-b border-brand text-brand">Explore More Questions</span>
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-brand group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="px-12 py-24 border-t border-white/5">
+            <div class="flex justify-between items-start mb-24">
+                <div>
+                    <div class="text-[140px] font-black italic leading-none opacity-5 tracking-tighter select-none">W/A PROTOCOL</div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-mono text-white/30 uppercase tracking-[0.4em] mb-4">Global Security Standard</p>
+                    <div class="flex gap-8 justify-end">
+                        <a href="#" class="text-xl font-black italic hover:text-brand transition-colors">Privacy</a>
+                        <a href="#" class="text-xl font-black italic hover:text-brand transition-colors">Terms</a>
+                        <a href="#" class="text-xl font-black italic hover:text-brand transition-colors">Service</a>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center text-[10px] font-mono text-white/20 uppercase tracking-[0.2em]">
+                <p>© 2026 W/A HUB. ALL RIGHTS RESERVED. DESIGNED FOR THE FUTURE BORDERLESS ECONOMY.</p>
+                <div class="flex gap-4 items-center">
+                    <span class="w-2 h-2 rounded-full bg-brand"></span>
+                    <span>System Status: Fully Operational</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            // 1440px 极致自适应缩放方案
+            const mainFrame = document.getElementById('main-frame');
+            const masterWidth = 1440;
+
+            const waitForFonts = () => {
+                const fonts = document.fonts;
+                if (!fonts || !fonts.ready) return Promise.resolve();
+                return Promise.race([
+                    fonts.ready,
+                    new Promise((resolve) => setTimeout(resolve, 800))
+                ]);
+            };
+
+            const waitForStableViewport = () => {
+                return new Promise((resolve) => {
+                    let lastW = 0;
+                    let stable = 0;
+                    let frames = 0;
+                    const maxFrames = 60;
+                    const tick = () => {
+                        frames += 1;
+                        const w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                        const wRounded = Math.round(w * 100) / 100;
+                        if (wRounded === lastW) stable += 1;
+                        else stable = 0;
+                        lastW = wRounded;
+                        if (stable >= 2 || frames >= maxFrames) {
+                            resolve();
+                            return;
+                        }
+                        requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                });
+            };
+
+            const applyScale = () => {
+                const viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                let scale = viewportWidth / masterWidth;
+                if (scale > 1) scale = 1;
+                scale = Math.round(scale * 10000) / 10000;
+                mainFrame.style.zoom = String(scale);
+            };
+
+            let scaleRaf = 0;
+            const requestScaleUpdate = () => {
+                if (scaleRaf) return;
+                scaleRaf = requestAnimationFrame(() => {
+                    scaleRaf = 0;
+                    applyScale();
+                });
+            };
+
+            window.addEventListener('resize', requestScaleUpdate);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', requestScaleUpdate);
+            }
+
+            Promise.all([waitForFonts(), waitForStableViewport()]).then(() => {
+                applyScale();
+                mainFrame.style.visibility = 'visible';
+                requestScaleUpdate();
+            });
+
+            // 多语言面板开关
+            const sideHub = document.getElementById('side-hub');
+            const langTrigger = document.getElementById('langTrigger');
+            const closeHub = document.getElementById('closeHub');
+
+            langTrigger.addEventListener('click', () => {
+                sideHub.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            closeHub.addEventListener('click', () => {
+                sideHub.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            // 模块入场动效
+            const modules = document.querySelectorAll('.glass-module');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            modules.forEach(m => {
+                m.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-1000');
+                observer.observe(m);
+            });
+        });
+    </script>
+</body>
+</html>

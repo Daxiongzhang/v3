@@ -1,0 +1,2848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="filename" content="index.html">
+    <title>W/A HUB V12 - PARAMETRIC ADAPTIVE</title>
+    <script>
+        (function() {
+            var w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth || window.innerWidth;
+            var scale = Math.min(1, w / 1440);
+            scale = Math.round(scale * 10000) / 10000;
+            document.documentElement.style.setProperty('--initial-scale', scale);
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#00FFD1',
+                        v12: '#BBFF00',
+                        terminal: '#0A0A0A',
+                        border: 'rgba(255,255,255,0.08)'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-black { font-weight: 900; }
+        .font-bold { font-weight: 700; }
+        .font-light { font-weight: 300; }
+
+        :root {
+            --neon-glow: 0 0 20px rgba(0, 255, 209, 0.3);
+            --angle: 0deg;
+        }
+
+        html {
+            background: #000;
+        }
+
+        body { 
+            background-color: #000 !important;
+            color: #fff; 
+            margin: 0; 
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('assets/v12-home-bg.webp') center top / 100% auto no-repeat;
+            opacity: 0;
+            filter: brightness(1.24) saturate(1.08) contrast(1.06);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body.v12-ready::before {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 820px) {
+            body::before {
+                background-size: cover;
+            }
+        }
+
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* V12 固定 1440px 容器 */
+        #v12-viewport {
+            width: 1440px;
+            min-height: 100vh;
+            position: relative;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-synthesis: weight style;
+            transform-origin: top center;
+            zoom: var(--initial-scale, 1);
+            flex-shrink: 0;
+            visibility: hidden;
+            background: transparent;
+            border-left: 1px solid rgba(255,255,255,0.03);
+            border-right: 1px solid rgba(255,255,255,0.03);
+            z-index: 600;
+        }
+
+        #v12-header-glass {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: calc(80px * var(--initial-scale));
+            z-index: 550;
+            pointer-events: none;
+            background: transparent;
+            -webkit-backdrop-filter: blur(18px) saturate(115%);
+            backdrop-filter: blur(18px) saturate(115%);
+            will-change: transform, height;
+        }
+
+        #v12-header-glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('assets/v12-home-bg.webp') center calc(0px - var(--glass-scroll-y, 0px)) / 100% auto no-repeat;
+            opacity: 0.9;
+            filter: blur(26px) brightness(1.12) saturate(1.06) contrast(1.04);
+        }
+
+        #v12-header-glass::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(8, 14, 18, 0.22), rgba(8, 14, 18, 0.22)),
+                linear-gradient(90deg, #0e161a 0%, #1a2a30 34%, rgba(255,255,255,0.22) 62%, rgba(255,255,255,0.56) 100%);
+            background-size: 100% 100%, 100% 1px;
+            background-position: 0 0, 0 100%;
+            background-repeat: no-repeat;
+            animation: none;
+        }
+
+        .v12-lang-switch {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        #lang-switcher {
+            position: fixed;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #lang-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            pointer-events: auto;
+            color: rgba(255,255,255,0.85);
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            outline: none;
+        }
+
+        #lang-control {
+            position: relative;
+            z-index: 1200;
+            pointer-events: auto;
+        }
+        #lang-trigger-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            line-height: 1;
+        }
+        #lang-trigger .v12-lang-caret {
+            width: 10px;
+            height: 10px;
+            opacity: 0.55;
+            transition: transform .18s ease, opacity .18s ease;
+        }
+        #lang-trigger[aria-expanded="true"] .v12-lang-caret {
+            transform: rotate(180deg);
+            opacity: 0.75;
+        }
+        #lang-menu {
+            position: fixed;
+            z-index: 2600;
+            width: fit-content;
+            min-width: 200px;
+            max-width: min(280px, calc(100vw - 16px));
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(0,0,0,0.66);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 22px 80px rgba(0,0,0,0.62), inset 0 1px 0 rgba(255,255,255,0.06);
+            display: none;
+        }
+        #lang-menu.is-open {
+            display: block;
+        }
+        .v12-lang-item {
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: rgba(255,255,255,0.82);
+            font-size: 10px;
+            line-height: 1.1;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .v12-lang-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+        .v12-lang-flag {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            flex: 0 0 18px;
+            transform: scale(1.25);
+            transform-origin: center;
+        }
+        .v12-lang-name {
+            font-size: 12px;
+            letter-spacing: 0.01em;
+            text-transform: none;
+            color: rgba(255,255,255,0.88);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .v12-lang-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.10);
+            color: rgba(255,255,255,0.95);
+        }
+        .v12-lang-item::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+            border-radius: 999px;
+            background: rgba(0,255,209,0.92);
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity .16s ease, transform .16s ease;
+        }
+        .v12-lang-item.is-active {
+            background: rgba(0,255,209,0.12);
+            border-color: rgba(187,255,0,0.0);
+            color: rgba(255,255,255,0.95);
+        }
+        .v12-lang-item.is-active::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #v12-hero-entry-cards .v12-entry-card {
+            height: 156px;
+            position: relative;
+        }
+
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="docs"] > img,
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="tools"] > img,
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="whitepaper"] > img {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 0;
+            object-fit: cover !important;
+            object-position: center !important;
+        }
+
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="docs"] > img,
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="tools"] > img,
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="whitepaper"] > img {
+            object-position: right center !important;
+        }
+
+        #v12-hero-entry-cards .v12-entry-card[data-v12-jump="intro"] > img {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 0;
+            object-fit: cover !important;
+            object-position: center !important;
+        }
+
+        .v12-entry-title {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            width: 58%;
+            max-width: 58%;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+            hyphens: auto;
+            text-wrap: pretty;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+        }
+        .v12-entry-desc {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            overflow: hidden;
+        }
+        #v12-hero-entry-cards .v12-entry-title {
+            font-size: 26px !important;
+            line-height: 1.06 !important;
+        }
+        #v12-hero-entry-cards .v12-entry-desc {
+            font-size: 11px !important;
+            line-height: 1.5 !important;
+        }
+        html[data-lang="cn"] #v12-hero-entry-cards .v12-entry-title {
+            font-size: 28px !important;
+            line-height: 1.04 !important;
+        }
+        html[data-lang]:not([data-lang="cn"]) #v12-hero-entry-cards .v12-entry-title {
+            line-height: 1.04;
+            font-size: 24px;
+        }
+        html[data-lang]:not([data-lang="cn"]) #v12-hero-entry-cards .v12-entry-desc {
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            line-height: 1.2;
+            font-size: 10px;
+        }
+        html[data-lang="jp"] #v12-hero-entry-cards .v12-entry-title,
+        html[data-lang="ko"] #v12-hero-entry-cards .v12-entry-title {
+            font-size: 28px !important;
+            line-height: 1.04 !important;
+        }
+
+        .v12-energy-bars {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .v12-energy-bars > span {
+            will-change: opacity, filter;
+            opacity: 0.22;
+            filter: brightness(1) saturate(1);
+        }
+        .v12-energy-bars > span:nth-child(1) { animation: v12-energy-b1 1.2s steps(1, end) infinite; }
+        .v12-energy-bars > span:nth-child(2) { animation: v12-energy-b2 1.2s steps(1, end) infinite; }
+        .v12-energy-bars > span:nth-child(3) { animation: v12-energy-b3 1.2s steps(1, end) infinite; }
+
+        @keyframes v12-energy-b1 {
+            0% { opacity: 1; filter: brightness(1.35) saturate(1.2); background-color: rgba(0,255,209,1); }
+            74% { opacity: 1; filter: brightness(1.35) saturate(1.2); background-color: rgba(0,255,209,1); }
+            75% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            100% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+        }
+        @keyframes v12-energy-b2 {
+            0% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            24% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            25% { opacity: 1; filter: brightness(1.25) saturate(1.2); background-color: rgba(0,255,209,1); }
+            74% { opacity: 1; filter: brightness(1.25) saturate(1.2); background-color: rgba(0,255,209,1); }
+            75% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            100% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+        }
+        @keyframes v12-energy-b3 {
+            0% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            49% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            50% { opacity: 1; filter: brightness(1.2) saturate(1.2); background-color: rgba(0,255,209,1); }
+            74% { opacity: 1; filter: brightness(1.2) saturate(1.2); background-color: rgba(0,255,209,1); }
+            75% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+            100% { opacity: 0.22; filter: brightness(1) saturate(1); background-color: rgba(255,255,255,0.10); }
+        }
+
+        @keyframes v12-glass-line-flow {
+            0% { background-position: 0 0, 0 100%; }
+            100% { background-position: 0 0, 240px 100%; }
+        }
+
+        #v12-viewport > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        #v12-header {
+            position: relative;
+            isolation: isolate;
+            z-index: 1000;
+            border-bottom: none !important;
+            background-color: transparent !important;
+            -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
+        }
+
+        #v12-header::before {
+            content: none;
+            display: none;
+        }
+
+        #v12-header::after {
+            content: none;
+            display: none;
+        }
+
+        #v12-header .v12-nav-link {
+            color: rgba(255,255,255,0.78) !important;
+        }
+
+        #v12-header .v12-nav-link:hover {
+            color: rgba(255,255,255,0.92) !important;
+        }
+
+        /* 2026 风格背景：网格点阵 + 边缘暗角 */
+        .grid-canvas {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 92%);
+        }
+
+        /* V12 特色：参数化边框卡片 */
+        .p-card {
+            background: rgba(22, 22, 22, 0.78);
+            border: 1px solid rgba(255,255,255,0.12);
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+            box-shadow: 0 14px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .p-card:hover {
+            border-color: rgba(0,255,209,0.22);
+            background: rgba(12, 12, 12, 0.8);
+            transform: translateY(-5px);
+            filter: drop-shadow(0 0 1px rgba(0,255,209,1)) drop-shadow(0 0 6px rgba(0,255,209,0.7)) drop-shadow(0 0 20px rgba(0,255,209,0.3));
+        }
+
+        #v12-hero-cta-row .p-card:hover {
+            transform: none;
+        }
+
+        .v12-entry-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(0,255,209,0.0);
+            clip-path: inherit;
+            pointer-events: none;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .v12-entry-card {
+            overflow: hidden;
+            isolation: isolate;
+        }
+        .v12-entry-card:hover {
+            border-color: rgba(0,255,209,0.22);
+            background: rgba(12, 12, 12, 0.8);
+            transform: translateY(-5px);
+            filter: drop-shadow(0 0 1px rgba(0,255,209,1)) drop-shadow(0 0 6px rgba(0,255,209,0.7)) drop-shadow(0 0 20px rgba(0,255,209,0.3));
+        }
+        .v12-entry-card:hover::after {
+            opacity: 1;
+            border-color: rgba(0,255,209,0.92);
+            box-shadow:
+                0 0 0 1px rgba(0,255,209,0.18),
+                0 0 22px rgba(0,255,209,0.18);
+        }
+
+        .p-card.v12-focus:hover {
+            border-color: rgba(0,255,209,0.88) !important;
+        }
+
+        .p-card.v12-selected:hover {
+            border-color: rgba(0,255,209,0.92) !important;
+        }
+        .p-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.085) 0%, transparent 32%),
+                        linear-gradient(135deg, transparent 95%, rgba(0, 255, 209, 0.12) 100%);
+            pointer-events: none;
+        }
+
+        .v12-core-neutral-gradient {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 34%, rgba(255,255,255,0.02) 100%),
+                linear-gradient(135deg, rgba(21, 23, 26, 0.9) 0%, rgba(14, 16, 19, 0.88) 56%, rgba(30, 33, 37, 0.9) 100%) !important;
+        }
+        .v12-core-neutral-gradient::before {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 32%),
+                        linear-gradient(135deg, transparent 95%, rgba(255,255,255,0.08) 100%);
+        }
+
+        .text-glow { text-shadow: 0 0 10px rgba(0, 255, 209, 0.5); }
+
+        /* 动态轮播样式 */
+        .carousel-container {
+            mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+        }
+
+        .v12-section {
+            scroll-margin-top: 96px;
+        }
+
+        #v12-header.v12-header-scrolled {
+            background: rgba(0,0,0,0.92);
+            border-bottom-color: rgba(255,255,255,0.14);
+            box-shadow: 0 22px 76px rgba(0,0,0,0.62);
+        }
+
+        .v12-nav-link {
+            position: relative;
+        }
+        .v12-nav-link.is-active {
+            color: #00FFD1 !important;
+        }
+        .v12-nav-link.is-active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -10px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,255,209,0.85), transparent);
+        }
+
+        .v12-card-action {
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .p-card:hover .v12-card-action {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .v12-divider {
+            position: relative;
+            margin: 28px 0 18px;
+            padding: 0 4px;
+        }
+        .v12-divider::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+        }
+        .v12-divider > span {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.75);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: rgba(255,255,255,0.55);
+            font-size: 10px;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+        }
+
+        .v12-kpi-band {
+            position: relative;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: radial-gradient(900px 280px at 20% 50%, rgba(0,255,209,0.06), transparent 60%),
+                        radial-gradient(700px 260px at 85% 50%, rgba(180,255,0,0.04), transparent 60%),
+                        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%, rgba(255,255,255,0.02));
+            overflow: hidden;
+        }
+        .v12-kpi-band::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,255,209,0.10) 50%, transparent 100%);
+            opacity: 0.0;
+            transform: translateX(-40%);
+            pointer-events: none;
+        }
+        .v12-kpi-band:hover::before {
+            opacity: 0.35;
+            animation: v12-kpi-scan 1.6s ease-in-out infinite;
+        }
+        @keyframes v12-kpi-scan {
+            0% { transform: translateX(-45%); }
+            100% { transform: translateX(45%); }
+        }
+
+        .v12-kpi-item {
+            position: relative;
+        }
+        .v12-kpi-bar {
+            height: 2px;
+            background: rgba(255,255,255,0.10);
+            box-shadow: inset 0 1px 0 rgba(0,0,0,0.55);
+        }
+        .v12-kpi-bar > span {
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(0,255,209,0.85), rgba(180,255,0,0.55));
+        }
+        .v12-kpi-meta {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.28em;
+            color: rgba(255,255,255,0.28);
+        }
+        .v12-kpi-trend {
+            color: rgba(0,255,209,0.55);
+        }
+
+        .v12-focus {
+            border-color: rgba(0,255,209,0.88) !important;
+            box-shadow:
+                0 0 0 2px rgba(0,255,209,0.42),
+                0 0 0 7px rgba(0,255,209,0.12),
+                0 18px 70px rgba(0,0,0,0.62),
+                inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        }
+
+        .v12-selected {
+            border-color: rgba(0,255,209,0.92) !important;
+            box-shadow:
+                0 0 0 2px rgba(0,255,209,0.70),
+                0 0 0 8px rgba(0,255,209,0.12),
+                inset 0 0 0 1px rgba(0,255,209,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.10),
+                0 24px 90px rgba(0,0,0,0.68) !important;
+        }
+
+        .p-card.v12-selected::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(0,255,209,0.92);
+            clip-path: inherit;
+            pointer-events: none;
+            z-index: 3;
+            box-shadow:
+                0 0 0 1px rgba(0,255,209,0.18),
+                0 0 22px rgba(0,255,209,0.18);
+        }
+
+        .v12-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s ease;
+        }
+        .v12-drawer-overlay.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .v12-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: min(520px, 92vw);
+            z-index: 2001;
+            transform: translateX(102%);
+            transition: transform .28s cubic-bezier(0.2, 1, 0.2, 1);
+            background: rgba(10,10,10,0.92);
+            border-left: 1px solid rgba(255,255,255,0.12);
+            box-shadow: -40px 0 120px rgba(0,0,0,0.7);
+        }
+        .v12-drawer.is-open {
+            transform: translateX(0);
+        }
+        .v12-drawer-header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.84) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.10);
+        }
+        .v12-drawer-badge {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1A1A1A; }
+
+        .v12-wire-toggle {
+            position: fixed;
+            left: 16px;
+            bottom: 16px;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(10px);
+        }
+
+        #img-tuner-toggle {
+            position: fixed;
+            left: 16px;
+            bottom: 74px;
+            z-index: 3000;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.7);
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        #img-tuner {
+            position: fixed;
+            left: 16px;
+            bottom: 118px;
+            z-index: 3000;
+            width: 280px;
+            padding: 12px;
+            background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+        #img-tuner.is-open {
+            display: block;
+        }
+        #img-tuner .img-tuner-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        #img-tuner .img-tuner-title span {
+            color: rgba(255,255,255,0.55);
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+        #img-tuner .img-tuner-reset {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.55);
+            padding: 6px 8px;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        #img-tuner .img-tuner-row {
+            display: grid;
+            grid-template-columns: 64px 1fr 56px;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #img-tuner .img-tuner-row label {
+            color: rgba(255,255,255,0.35);
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+        #img-tuner input[type="range"] {
+            width: 100%;
+        }
+        #img-tuner input[type="number"] {
+            width: 56px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.7);
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            padding: 6px 6px;
+            outline: none;
+        }
+        .v12-wire-box {
+            border: 1px dashed rgba(0,255,209,0.55);
+            background: rgba(0,255,209,0.05);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.55);
+        }
+        .v12-wire-label {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(0,255,209,0.8);
+            font-family: Space Grotesk, monospace;
+            pointer-events: none;
+        }
+        .v12-wire-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+            z-index: 120;
+        }
+        .v12-wire-overlay.is-on {
+            display: block;
+        }
+
+        .v12-search-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.78);
+            cursor: pointer;
+            transition: border-color .18s ease, background .18s ease;
+        }
+        .v12-search-trigger:hover {
+            border-color: rgba(0,255,209,0.35);
+            background: rgba(255,255,255,0.05);
+        }
+        .v12-search-trigger kbd {
+            font-size: 10px;
+            font-family: Space Grotesk, monospace;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.55);
+            border: 1px solid rgba(255,255,255,0.14);
+            padding: 4px 8px;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .v12-search-inline-light {
+            border: 1px solid rgba(255,255,255,0.10) !important;
+            background: rgba(255,255,255,0.02) !important;
+        }
+
+        .v12-header-search {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(12px);
+            min-width: 320px;
+        }
+        .v12-header-search input {
+            width: 100%;
+            background: transparent;
+            outline: none;
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+        }
+        .v12-header-search.is-on {
+            display: flex;
+        }
+
+        .v12-cmdk-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2400;
+            background: rgba(0,0,0,0.68);
+            backdrop-filter: blur(14px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease;
+        }
+        .v12-cmdk-overlay.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .v12-cmdk {
+            position: fixed;
+            left: 50%;
+            top: 14vh;
+            transform: translateX(-50%) translateY(8px);
+            width: min(720px, 92vw);
+            z-index: 2401;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease;
+        }
+        .v12-cmdk.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="v12-header-glass" aria-hidden="true"></div>
+    <div id="v12-viewport">
+        <div class="grid-canvas"></div>
+
+        <!-- V12 Header: 极简参数化 -->
+        <header id="v12-header" class="h-20 px-16 flex items-center justify-between sticky top-0 z-[1000] bg-transparent backdrop-blur-2xl border-b border-white/5">
+            <div class="flex items-center gap-12">
+                <div class="flex items-center gap-2 group cursor-pointer">
+                    <div class="w-8 h-8 border border-brand p-1 rotate-45 group-hover:rotate-180 transition-transform duration-700">
+                        <div class="w-full h-full bg-brand"></div>
+                    </div>
+                    <div class="ml-2">
+                        <span class="text-xl font-black italic tracking-tighter">W/A HUB</span>
+                        <span class="block text-[8px] font-mono text-white/30 tracking-[3px]">VER_12.0.4_STABLE</span>
+                    </div>
+                </div>
+                <nav class="hidden lg:flex gap-8">
+                    <a href="#v12-interface" class="v12-nav-link text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"><span data-i18n="nav_overview_main">Overview</span><span data-i18n="nav_overview_sub" class="ml-2 text-white/25 font-mono">总览</span></a>
+                    <a href="#v12-resources" class="v12-nav-link text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"><span data-i18n="nav_core_main">Core</span><span data-i18n="nav_core_sub" class="ml-2 text-white/25 font-mono">核心</span></a>
+                    <a href="#v12-nodes" class="v12-nav-link text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"><span data-i18n="nav_updates_main">Updates</span><span data-i18n="nav_updates_sub" class="ml-2 text-white/25 font-mono">动态</span></a>
+                </nav>
+            </div>
+
+            <div id="v12-header-search" class="v12-header-search">
+                <i data-lucide="search" class="w-4 h-4 text-white/40"></i>
+                <input id="v12-header-search-input" data-i18n="header_search_placeholder" type="text" placeholder="Search…" />
+                <div data-i18n="cmdk_kbd" class="text-[10px] font-mono text-white/35 uppercase tracking-[3px]">Cmd K</div>
+            </div>
+
+            <!-- 多语言控制中心 (2026样式) -->
+            <div class="flex items-center gap-6">
+                <div id="lang-control" class="flex items-center bg-white/5 border border-white/10 px-3 py-1.5 rounded-sm gap-4">
+                    <div class="v12-energy-bars">
+                        <span class="w-1 h-3 bg-brand"></span>
+                        <span class="w-1 h-3 bg-white/10"></span>
+                        <span class="w-1 h-3 bg-white/10"></span>
+                    </div>
+                    <div class="v12-lang-switch">
+                        <select id="lang-switcher">
+                            <option value="en">EN / English</option>
+                            <option value="cn" selected>ZH / 简体中文</option>
+                            <option value="id">ID / Bahasa Indonesia</option>
+                            <option value="vi">VI / Tiếng Việt</option>
+                            <option value="jp">JA / 日本語</option>
+                            <option value="ko">KO / 한국어</option>
+                            <option value="th">TH / ไทย</option>
+                        </select>
+                        <button id="lang-trigger" type="button" aria-haspopup="menu" aria-expanded="false">
+                            <span id="lang-trigger-label">ZH / 简体中文</span>
+                            <svg class="v12-lang-caret" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="h-8 w-[1px] bg-white/10"></div>
+                <button class="bg-brand text-black font-black text-[10px] px-6 py-2 uppercase tracking-tighter hover:bg-v12 transition-colors">
+                    <span data-i18n="enter_core">Enter Core</span>
+                </button>
+            </div>
+        </header>
+
+        <div id="lang-menu" role="menu" aria-label="Language"></div>
+
+        <main class="px-16 pt-20">
+            <!-- Hero Section -->
+            <div id="v12-interface" class="v12-section grid grid-cols-12 mb-16 relative">
+                <div id="v12-wire-overlay" class="v12-wire-overlay">
+                    <div id="v12-wire-a" class="absolute inset-0 hidden">
+                        <div class="v12-wire-box absolute left-[0px] top-[84px] w-[920px] h-[104px]"></div>
+                        <div class="v12-wire-label" style="left: 18px; top: 94px;">[ Whitepaper 主入口条（强重音） ]</div>
+
+                        <div class="v12-wire-box absolute left-[960px] top-[84px] w-[340px] h-[104px]"></div>
+                        <div class="v12-wire-label" style="left: 978px; top: 94px;">[ CTA ]</div>
+
+                        <div class="absolute left-[0px] top-[214px] w-[1300px] h-px bg-[rgba(0,255,209,0.45)]"></div>
+
+                        <div class="v12-wire-box absolute left-[0px] top-[248px] w-[560px] h-[98px]"></div>
+                        <div class="v12-wire-label" style="left: 18px; top: 258px;">[ FAQ（中等） ]</div>
+
+                        <div class="v12-wire-box absolute left-[600px] top-[248px] w-[340px] h-[98px]"></div>
+                        <div class="v12-wire-label" style="left: 618px; top: 258px;">[ Tools（短） ]</div>
+
+                        <div class="v12-wire-box absolute left-[600px] top-[368px] w-[700px] h-[98px]"></div>
+                        <div class="v12-wire-label" style="left: 618px; top: 378px;">[ Docs（长） ]</div>
+                    </div>
+                </div>
+                <div id="v12-hero-left" class="col-span-8 flex flex-col justify-center">
+                    <div class="inline-flex items-center gap-3 mb-6 bg-brand/5 border border-brand/20 px-3 py-1 w-fit">
+                        <span class="animate-pulse w-2 h-2 bg-brand rounded-full"></span>
+                        <span class="text-[10px] font-mono text-brand font-bold tracking-[2px]">2026_INTERFACE_PROTOCOL</span>
+                    </div>
+                    <h1 class="text-[90px] font-black italic leading-[1.02] tracking-tighter mb-6">
+                        <span data-i18n="hero_title_line1" data-i18n-mode="html">基于 W/A <span style="display:inline-flex;align-items:baseline;gap:0;vertical-align:-0.08em;"><img src="assets/hero-title-xie-outline.svg?v=20260304-1027" alt="协" style="display:block;height:1em;width:auto;" /><img src="assets/hero-title-yi-outline.svg?v=20260304-1027" alt="议" style="display:block;height:1em;width:auto;" /></span>构建</span><br/>
+                        <span data-i18n="hero_title_line2" data-i18n-mode="html"><span class="text-brand">Web4.0</span>数字文明入口</span>
+                    </h1>
+                    <p data-i18n="hero_subtitle" class="max-w-xl text-white/55 text-lg leading-relaxed font-light mb-10 italic">通过 Web4 生态系统构建无缝连接的去中心化世界，聚合全球 AI 算力与广告矩阵价值，打造永续增值的数字财富中枢</p>
+
+                    <div id="v12-hero-cta-row" class="hidden">
+                        <div class="flex items-center gap-4">
+                            <button class="bg-brand text-black font-black text-[10px] px-8 py-3 uppercase tracking-widest hover:bg-v12 transition-colors">Enter Archive</button>
+                            <button data-v12-jump="whitepaper" class="p-card px-8 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Whitepaper</button>
+                            <button id="v12-hero-cmdk" class="ml-2 p-card px-6 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Search (Cmd K)</button>
+                        </div>
+                    </div>
+
+                    <div id="v12-hero-entry-cards" class="hidden mt-10">
+                        <div class="grid grid-cols-4 gap-6">
+                            <div data-v12-jump="intro" class="v12-entry-card p-card p-6 bg-terminal cursor-pointer">
+                                <img src="assets/card-xiangmujieshao-deco.webp"
+                                     class="absolute pointer-events-none select-none"
+                                     style="width: 531px; height: auto; top: -49%; right: -8%; -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.3) 75%, transparent 100%); mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.3) 75%, transparent 100%);" alt="" />
+                                <div class="relative z-10">
+                                    <div class="text-[10px] font-mono text-white/60 uppercase tracking-[3px]">01 /</div>
+                                    <div data-i18n="hero_entry_intro_title" class="v12-entry-title mt-1 text-2xl font-black italic tracking-tight">项目介绍</div>
+                                    <div data-i18n="hero_entry_intro_desc" class="v12-entry-desc mt-3 text-[11px] text-white/70 leading-relaxed">核心介绍与必读</div>
+                                </div>
+                            </div>
+                            <div data-v12-jump="docs" class="v12-entry-card p-card p-6 bg-terminal cursor-pointer">
+                                <img src="assets/card-zhanlveguihua-deco.webp?v=20260303-1532" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none" alt="" />
+                                <div class="relative z-10">
+                                    <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">02 /</div>
+                                    <div data-i18n="hero_entry_docs_title" class="v12-entry-title mt-1 text-2xl font-black italic tracking-tight">战略规划</div>
+                                    <div data-i18n="hero_entry_docs_desc" class="v12-entry-desc mt-3 text-[11px] text-white/35 leading-relaxed">文档与教程合集</div>
+                                </div>
+                            </div>
+                            <div data-v12-jump="tools" class="v12-entry-card p-card p-6 bg-terminal cursor-pointer">
+                                <img src="assets/card-hexinmoshi-deco.webp?v=20260304-0807" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none" alt="" />
+                                <div class="relative z-10">
+                                    <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">03 /</div>
+                                    <div data-i18n="hero_entry_tools_title" class="v12-entry-title mt-1 text-2xl font-black italic tracking-tight">核心模式</div>
+                                    <div data-i18n="hero_entry_tools_desc" class="v12-entry-desc mt-3 text-[11px] text-white/35 leading-relaxed">安全/审计/工具</div>
+                                </div>
+                            </div>
+                            <div data-v12-jump="whitepaper" class="v12-entry-card p-card p-6 bg-terminal cursor-pointer">
+                                <img src="assets/card-shangyemoshi-deco.webp"
+                                     class="absolute pointer-events-none select-none"
+                                     style="width: var(--card-shangyemoshi-w, 531px); height: auto; top: var(--card-shangyemoshi-top, -49%); right: var(--card-shangyemoshi-right, -8%); -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.3) 75%, transparent 100%); mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.3) 75%, transparent 100%);" alt="" />
+                                <div class="relative z-10">
+                                    <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">04 /</div>
+                                    <div data-i18n="hero_entry_whitepaper_title" class="v12-entry-title mt-1 text-2xl font-black italic tracking-tight">商业模式</div>
+                                    <div data-i18n="hero_entry_whitepaper_desc" class="v12-entry-desc mt-3 text-[11px] text-white/35 leading-relaxed">版本/摘要/差异</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="v12-search-mode-e" class="hidden">
+                        <div id="v12-search-trigger" class="v12-search-trigger">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <i data-lucide="search" class="w-4 h-4 text-white/50"></i>
+                                <div class="min-w-0">
+                                    <div data-i18n="search_command_title" class="text-[11px] font-mono uppercase tracking-[3px] text-white/55">Search / Command</div>
+                                    <div data-i18n="search_command_desc" class="text-[11px] text-white/35 truncate">Type to find modules, whitepaper, docs, faq…</div>
+                                </div>
+                            </div>
+                            <kbd data-i18n="cmdk_kbd">Cmd K</kbd>
+                        </div>
+                        <div class="mt-4 flex gap-2 flex-wrap">
+                            <button data-v12-jump="faq" class="bg-brand/10 border border-brand/25 text-brand text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:bg-brand/15 transition-colors">FAQ</button>
+                            <button data-v12-jump="whitepaper" data-i18n="whitepaper" class="bg-brand text-black text-[10px] font-black uppercase tracking-widest px-4 py-1.5 hover:bg-v12 transition-colors">Whitepaper</button>
+                            <button data-v12-jump="docs" data-i18n="docs" class="bg-white/5 border border-white/10 text-white/70 text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:border-white/20 hover:text-white transition-colors">Docs</button>
+                            <button data-v12-jump="tools" class="bg-white/5 border border-white/10 text-white/70 text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:border-white/20 hover:text-white transition-colors">Tools</button>
+                        </div>
+                    </div>
+
+                    <div id="v12-search-mode-f" class="hidden">
+                        <div data-i18n="scroll_reveal_header_command" class="text-[11px] text-white/30 font-mono uppercase tracking-[3px]">Scroll to reveal header command</div>
+                    </div>
+
+                    <div id="v12-search-mode-g" class="hidden">
+                        <div class="p-card p-6 bg-terminal">
+                            <div class="flex items-start justify-between gap-6">
+                                <div class="min-w-0">
+                                    <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / SEARCH</div>
+                                    <div class="mt-4 text-xl font-black italic tracking-tight">检索入口</div>
+                                    <div class="mt-3 text-[11px] text-white/40 leading-relaxed">把搜索当成一个模块：点击后打开命令面板。</div>
+                                </div>
+                                <button id="v12-search-module-open" class="bg-brand text-black font-black text-[10px] px-5 py-3 uppercase tracking-widest hover:bg-v12 transition-colors">Open</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="v12-search-mode-h" class="hidden">
+                        <div class="p-card p-4 bg-terminal v12-search-inline-light">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="search" class="w-4 h-4 text-white/40"></i>
+                                <input id="v12-command" data-i18n="command_placeholder" class="flex-1 bg-transparent text-sm text-white placeholder:text-white/25 focus:outline-none" placeholder="Search modules, docs, faq…" />
+                                <button data-i18n="cmdk" class="bg-transparent border border-white/10 text-white/55 text-[10px] font-mono px-3 py-1 uppercase tracking-widest hover:border-brand/35 hover:text-white transition-colors">Cmd K</button>
+                            </div>
+                            <div class="mt-4 flex gap-2 flex-wrap">
+                                <button data-v12-jump="faq" class="bg-brand/10 border border-brand/25 text-brand text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:bg-brand/15 transition-colors">FAQ</button>
+                                <button data-v12-jump="whitepaper" data-i18n="whitepaper" class="bg-brand text-black text-[10px] font-black uppercase tracking-widest px-4 py-1.5 hover:bg-v12 transition-colors">Whitepaper</button>
+                                <button data-v12-jump="docs" data-i18n="docs" class="bg-white/5 border border-white/10 text-white/70 text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:border-white/20 hover:text-white transition-colors">Docs</button>
+                                <button data-v12-jump="tools" class="bg-white/5 border border-white/10 text-white/70 text-[10px] font-bold uppercase tracking-widest px-3 py-1 hover:border-white/20 hover:text-white transition-colors">Tools</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-8 items-center border-t border-white/5 pt-6 mt-6">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 bg-brand rounded-full"></span>
+                            <span class="text-xs font-mono text-white/25 uppercase tracking-widest">Index_Ready</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 bg-white/15 rounded-full"></span>
+                            <span class="text-xs font-mono text-white/25 uppercase tracking-widest">Modules_Online: 24</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- V12 参数化面板 -->
+                <div id="v12-hero-right" class="hidden col-span-4 flex flex-col gap-6">
+                    <div class="p-card p-8 group">
+                        <div class="flex items-start justify-between gap-6">
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">SYSTEM / STATUS</div>
+                                <div class="mt-4 text-2xl font-black italic tracking-tight">88.42%</div>
+                                <div class="mt-2 text-[11px] text-white/40 leading-relaxed">Adaptive sync ratio · modules indexed</div>
+                            </div>
+                            <div class="w-12 h-12 p-card bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="activity" class="text-brand w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="mt-7 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">Index</div>
+                                <div class="text-[10px] font-mono text-white/55 uppercase tracking-[3px]">READY</div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">Modules</div>
+                                <div class="text-[10px] font-mono text-white/55 uppercase tracking-[3px]">24 ONLINE</div>
+                            </div>
+                            <div class="h-px bg-white/10"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-1 bg-white/10 shadow-inner">
+                                    <div class="h-1 bg-brand/90 w-[88%]"></div>
+                                </div>
+                                <div class="text-[10px] font-mono text-white/35 uppercase tracking-[3px]">SYNC</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据展示板块 -->
+            <div class="v12-kpi-band grid grid-cols-4 gap-8 mb-20 py-6 px-2">
+                <div class="v12-kpi-item flex flex-col gap-2">
+                    <span class="text-[10px] font-mono text-brand uppercase tracking-[4px]">TPS_Rate</span>
+                    <span class="text-5xl font-black italic tracking-tighter">24,100</span>
+                    <div class="v12-kpi-bar"><span style="width: 78%;"></span></div>
+                    <div class="v12-kpi-meta"><span>Load</span><span class="v12-kpi-trend">+3.2%</span></div>
+                </div>
+                <div class="v12-kpi-item flex flex-col gap-2">
+                    <span class="text-[10px] font-mono text-white/20 uppercase tracking-[4px]">Verified</span>
+                    <span class="text-5xl font-black italic tracking-tighter text-glow text-white/90">99.9%</span>
+                    <div class="v12-kpi-bar"><span style="width: 78%;"></span></div>
+                    <div class="v12-kpi-meta"><span>Checks</span><span class="v12-kpi-trend">Stable</span></div>
+                </div>
+                <div class="v12-kpi-item flex flex-col gap-2">
+                    <span class="text-[10px] font-mono text-white/20 uppercase tracking-[4px]">Latency</span>
+                    <span class="text-5xl font-black italic tracking-tighter">18<span class="text-xl">MS</span></span>
+                    <div class="v12-kpi-bar"><span style="width: 78%;"></span></div>
+                    <div class="v12-kpi-meta"><span>P95</span><span class="v12-kpi-trend">-2ms</span></div>
+                </div>
+                <div class="v12-kpi-item flex flex-col gap-2">
+                    <span class="text-[10px] font-mono text-white/20 uppercase tracking-[4px]">Volume</span>
+                    <span class="text-5xl font-black italic tracking-tighter text-v12">$2.4B</span>
+                    <div class="v12-kpi-bar"><span style="width: 78%;"></span></div>
+                    <div class="v12-kpi-meta"><span>24H</span><span class="v12-kpi-trend">+0.8%</span></div>
+                </div>
+            </div>
+
+            <!-- 核心功能板块 (全量补全) -->
+            <section id="v12-resources" class="v12-section mb-32">
+                <div class="v12-divider"><span><span class="w-1.5 h-1.5 bg-white/30 rounded-full"></span>Core Index</span></div>
+                <div data-i18n="core_lead" class="text-[11px] text-white/35 font-mono uppercase tracking-[3px] mb-10 px-1">Pick one module. Each module has a status, a purpose, and an action.</div>
+                <div class="flex items-end justify-between mb-16 px-4">
+                    <h2 class="text-4xl font-black italic uppercase flex items-center gap-6">
+                        <span data-i18n="core_modules_title">Core Modules</span> <span class="h-px w-24 bg-white/10"></span>
+                        <span class="text-xs font-mono text-white/25">CORE_INDEX</span>
+                    </h2>
+                    <a href="#" data-i18n="view_all_modules" class="text-[10px] font-bold uppercase tracking-widest hover:text-brand transition-all flex items-center gap-2">View All Modules <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+                </div>
+
+                <div class="grid grid-cols-12 gap-8">
+                    <div data-v12-module="whitepaper" class="col-span-4 row-span-2 p-card p-10 bg-terminal group cursor-pointer flex flex-col justify-between min-h-[520px]">
+                        <div>
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px] mb-4">MODULE / WHITEPAPER · STATUS: PRIMARY</div>
+                            <div class="flex items-start justify-between gap-6">
+                                <div>
+                                    <div data-i18n="whitepaper_cn_title" class="text-3xl font-black italic tracking-tight">白皮书</div>
+                                    <div data-i18n="whitepaper_cn_desc" class="mt-3 text-[11px] text-white/45 leading-relaxed">查看白皮书正文、版本差异与重点摘要。</div>
+                                </div>
+                                <div class="w-16 h-16 p-card bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="file-text" class="text-brand w-8 h-8"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-8">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">Version</div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-[10px] font-mono text-white/60 uppercase tracking-[3px]">v2.0</div>
+                                <div data-i18n="open" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Open</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-v12-module="faq" class="col-span-8 p-card p-10 bg-terminal v12-core-neutral-gradient group cursor-pointer flex items-start justify-between gap-10 min-h-[200px]">
+                        <div class="min-w-0 max-w-[560px]">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / FAQ_CENTER · STATUS: ACTIVE</div>
+                            <div data-i18n="module_faq_title" class="mt-4 text-2xl font-black italic tracking-tight">百问百答</div>
+                            <div data-i18n="module_faq_desc" class="mt-3 text-[11px] text-white/40 leading-relaxed">快速定位常见问题与风险点</div>
+                        </div>
+                        <div class="flex flex-col items-end justify-between h-full min-h-[140px]">
+                            <div class="w-12 h-12 p-card bg-white/5 border border-white/10 flex items-center justify-center">
+                                <i data-lucide="help-circle" class="text-brand w-6 h-6"></i>
+                            </div>
+                            <div data-i18n="open" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Open</div>
+                        </div>
+                    </div>
+
+                    <div data-v12-module="tools" class="col-span-4 p-card p-10 group border-l-2 border-l-v12/30 cursor-pointer flex items-start justify-between gap-8 min-h-[200px]">
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / AUDIT · STATUS: READY</div>
+                            <div data-i18n="module_tools_title" class="mt-4 text-xl font-black italic tracking-tight">安全审计</div>
+                            <div data-i18n="module_tools_desc" class="mt-3 text-[11px] text-white/40 leading-relaxed">审计进展、披露与安全行动</div>
+                        </div>
+                        <div class="flex flex-col items-end justify-end h-full">
+                            <div data-i18n="open" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Open</div>
+                        </div>
+                    </div>
+
+                    <div data-v12-module="docs" class="col-span-4 p-card p-10 group bg-brand/5 v12-core-neutral-gradient cursor-pointer flex items-start justify-between gap-8 min-h-[200px]">
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / LIBRARY · STATUS: SYNCED</div>
+                            <div data-i18n="module_docs_title" class="mt-4 text-xl font-black italic tracking-tight">资料库</div>
+                            <div data-i18n="module_docs_desc" class="mt-3 text-[11px] text-white/40 leading-relaxed">教程、工具与参考资料合集</div>
+                        </div>
+                        <div class="flex flex-col items-end justify-end h-full">
+                            <div data-i18n="browse" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Browse</div>
+                        </div>
+                    </div>
+
+                    <div data-v12-module="official" class="col-span-8 p-card p-10 group cursor-pointer flex items-start justify-between gap-10 min-h-[220px]">
+                        <div class="min-w-0 max-w-[620px]">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / OFFICIAL · STATUS: LINKED</div>
+                            <div data-i18n="module_official_title" class="mt-4 text-xl font-black italic tracking-tight">官方入口</div>
+                            <div data-i18n="module_official_desc" class="mt-3 text-[11px] text-white/40 leading-relaxed">官网、合约、社媒一键体验</div>
+                        </div>
+                        <div class="flex flex-col items-end justify-end h-full">
+                            <div data-i18n="open" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Open</div>
+                        </div>
+                    </div>
+
+                    <div data-v12-module="notice" class="col-span-4 p-card p-10 group v12-core-neutral-gradient cursor-pointer flex items-start justify-between gap-8 min-h-[220px]">
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-mono text-white/25 uppercase tracking-[3px]">MODULE / NOTICE · STATUS: LIVE</div>
+                            <div data-i18n="module_notice_title" class="mt-4 text-xl font-black italic tracking-tight">公告</div>
+                            <div data-i18n="module_notice_desc" class="mt-3 text-[11px] text-white/40 leading-relaxed">最新更新、变更与提醒</div>
+                        </div>
+                        <div class="flex flex-col items-end justify-end h-full">
+                            <div data-i18n="open" class="v12-card-action text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Open</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="v12-nodes" class="v12-section mb-32">
+                <div class="flex items-center justify-between mb-16">
+                    <h3 class="text-3xl font-black italic uppercase flex items-center gap-6">
+                        <span class="w-10 h-[1px] bg-brand"></span>
+                        UPDATES / Release Notes
+                    </h3>
+                    <div class="flex gap-4">
+                        <button id="v12-prev" class="p-card px-4 py-2 hover:bg-brand hover:text-black transition-all"> <i data-lucide="arrow-left" class="w-4 h-4"></i> </button>
+                        <button id="v12-next" class="p-card px-4 py-2 hover:bg-brand hover:text-black transition-all"> <i data-lucide="arrow-right" class="w-4 h-4"></i> </button>
+                    </div>
+                </div>
+                
+                <div class="carousel-container overflow-hidden">
+                    <div id="v12-track" class="flex gap-10 transition-transform duration-[1500ms] cubic-bezier(0.2, 1, 0.2, 1)">
+                        <div class="min-w-[440px] p-card p-10 h-72 group flex flex-col justify-center">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-brand font-mono text-[9px] tracking-[4px]">UPDATE / MODULE</div>
+                                <div class="text-[9px] font-mono text-white/25 tracking-[3px]">2026-02-25</div>
+                            </div>
+                            <h5 class="text-2xl font-black italic mb-4">去中心化解析协议</h5>
+                            <p class="text-white/20 text-xs italic leading-relaxed">完全对接 V12 自适应渲染架构，确保跨节点数据同步的最高视觉精度。</p>
+                        </div>
+                        <div class="min-w-[440px] p-card p-10 h-72 group flex flex-col justify-center border-brand/40">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-brand font-mono text-[9px] tracking-[4px]">UPDATE / CORE</div>
+                                <div class="text-[9px] font-mono text-white/25 tracking-[3px]">2026-02-18</div>
+                            </div>
+                            <h5 class="text-2xl font-black italic mb-4">多语言解析引擎</h5>
+                            <p class="text-white/20 text-xs italic leading-relaxed">通过 V12 控制台可实时分发不同地理位置的静态内容缓存。</p>
+                        </div>
+                        <div class="min-w-[440px] p-card p-10 h-72 group flex flex-col justify-center">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-white/35 font-mono text-[9px] tracking-[4px]">UPDATE / SECURITY</div>
+                                <div class="text-[9px] font-mono text-white/25 tracking-[3px]">2026-02-06</div>
+                            </div>
+                            <h5 class="text-2xl font-black italic mb-4">实时安全流监测</h5>
+                            <p class="text-white/20 text-xs italic leading-relaxed">基于参数化边框设计的监控面板，异常状态一秒感知。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <button id="img-tuner-toggle" type="button">IMG</button>
+        <div id="img-tuner" aria-label="Image Tuner">
+            <div class="img-tuner-title">
+                <span>CARD IMAGE</span>
+                <button id="img-tuner-reset" type="button" class="img-tuner-reset">RESET</button>
+            </div>
+            <div class="img-tuner-row" data-key="w">
+                <label>WIDTH</label>
+                <input type="range" min="300" max="760" step="1" value="586" />
+                <input type="number" min="300" max="760" step="1" value="586" />
+            </div>
+            <div class="img-tuner-row" data-key="top">
+                <label>TOP</label>
+                <input type="range" min="-90" max="10" step="1" value="-8" />
+                <input type="number" min="-90" max="10" step="1" value="-8" />
+            </div>
+            <div class="img-tuner-row" data-key="right">
+                <label>RIGHT</label>
+                <input type="range" min="-30" max="30" step="1" value="-2" />
+                <input type="number" min="-30" max="30" step="1" value="-2" />
+            </div>
+        </div>
+
+        <!-- Footer: 2026 模块化结尾 -->
+        <footer class="mt-20 px-16 py-32 bg-terminal border-t border-white/10 flex flex-col gap-20">
+            <div class="grid grid-cols-12 gap-12">
+                <div class="col-span-4">
+                    <div class="text-2xl font-black italic mb-8 tracking-tighter">W/A GLOBAL_NODE</div>
+                    <p class="text-[10px] text-white/20 font-bold uppercase leading-loose tracking-[2px]">致力构建面向2026年的无感化适配接口系统。V12版本所有模组均经过自适应性能压力测试。</p>
+                </div>
+                <!-- 页脚链接完全补全 -->
+                <div class="col-span-2">
+                    <div class="text-xs font-mono text-brand mb-8 uppercase">Resources</div>
+                    <ul class="space-y-4 text-[11px] font-bold text-white/40 uppercase">
+                        <li class="hover:text-white cursor-pointer transition-colors">Documentation</li>
+                        <li class="hover:text-white cursor-pointer transition-colors">API Guide</li>
+                        <li class="hover:text-white cursor-pointer transition-colors">GitHub Sync</li>
+                    </ul>
+                </div>
+                <div class="col-span-2">
+                    <div class="text-xs font-mono text-v12 mb-8 uppercase">Legal</div>
+                    <ul class="space-y-4 text-[11px] font-bold text-white/40 uppercase">
+                        <li class="hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
+                        <li class="hover:text-white cursor-pointer transition-colors">Service Terms</li>
+                    </ul>
+                </div>
+                <div class="col-span-4 flex flex-col items-end justify-end">
+                    <div class="p-card rounded-none px-6 py-4 flex flex-col items-end gap-2">
+                        <span class="text-[10px] font-mono text-white/10 italic">SYSTEM_CLOCK_SYNCED</span>
+                        <div class="text-xs font-black tracking-[5px]"> 2026 ALL RIGHTS RESERVED</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="v12-drawer-overlay" class="v12-drawer-overlay"></div>
+    <aside id="v12-drawer" class="v12-drawer" aria-hidden="true">
+        <div class="v12-drawer-header px-6 py-5">
+            <div class="flex items-start justify-between gap-6">
+                <div class="min-w-0">
+                    <div id="v12-drawer-meta" class="text-[10px] font-mono text-white/35 uppercase tracking-[3px]">MODULE</div>
+                    <div class="mt-2 flex items-center gap-3">
+                        <div id="v12-drawer-title" class="text-2xl font-black italic tracking-tight truncate">Module</div>
+                        <span id="v12-drawer-status" class="v12-drawer-badge text-[10px] font-mono text-white/55 uppercase tracking-[3px] px-2 py-1">STATUS</span>
+                    </div>
+                </div>
+                <button id="v12-drawer-close" data-i18n-aria-label="drawer_close" class="p-card px-3 py-2 hover:bg-white/5 transition-colors" aria-label="Close">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="v12-drawer-desc" class="mt-4 text-sm text-white/45 leading-relaxed">Description</div>
+        </div>
+
+        <div class="px-6 py-6 overflow-y-auto h-[calc(100vh-132px)]">
+            <div class="grid grid-cols-2 gap-4">
+                <button id="v12-drawer-primary" data-i18n="drawer_open" class="bg-brand text-black font-black text-[10px] px-5 py-3 uppercase tracking-widest hover:bg-v12 transition-colors">Open</button>
+                <button id="v12-drawer-secondary" data-i18n="drawer_run" class="p-card px-5 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Run</button>
+            </div>
+
+            <div class="mt-8">
+                <div class="flex items-center justify-between">
+                    <div data-i18n="drawer_recent_updates" class="text-xs font-mono text-white/35 uppercase tracking-[3px]">Recent Updates</div>
+                    <div data-i18n="drawer_last_30_days" class="text-[10px] font-mono text-white/20 uppercase tracking-[3px]">Last 30 days</div>
+                </div>
+                <div id="v12-drawer-updates" class="mt-4 space-y-3"></div>
+            </div>
+
+            <div class="mt-10 p-card p-5 bg-terminal">
+                <div data-i18n="drawer_quick_actions" class="text-[10px] font-mono text-white/30 uppercase tracking-[3px]">Quick Actions</div>
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <button data-i18n="drawer_pin" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Pin</button>
+                    <button data-i18n="drawer_share" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Share</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div id="v12-cmdk-overlay" class="v12-cmdk-overlay"></div>
+    <div id="v12-cmdk" class="v12-cmdk">
+        <div class="p-card p-6 bg-terminal">
+            <div class="flex items-center gap-4">
+                <i data-lucide="search" class="w-4 h-4 text-white/40"></i>
+                <input id="v12-cmdk-input" data-i18n="cmdk_input_placeholder" type="text" class="flex-1 bg-transparent text-sm text-white placeholder:text-white/25 focus:outline-none" placeholder="Search modules, docs, faq…" />
+                <div data-i18n="esc" class="text-[10px] font-mono text-white/35 uppercase tracking-[3px]">Esc</div>
+            </div>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <button data-v12-jump="whitepaper" data-i18n="cmdk_open_whitepaper" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Open Whitepaper</button>
+                <button data-v12-jump="faq" data-i18n="cmdk_open_faq" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Open FAQ</button>
+                <button data-v12-jump="docs" data-i18n="cmdk_browse_docs" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Browse Docs</button>
+                <button data-v12-jump="tools" data-i18n="cmdk_open_tools" class="p-card px-4 py-3 text-[10px] font-mono text-white/70 uppercase tracking-widest hover:bg-white/5 transition-colors">Open Tools</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+            } catch (e) {}
+
+            const qs = (sel, root) => (root || document).querySelector(sel);
+            const qsa = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+            const on = (el, event, handler, opts) => {
+                if (!el) return;
+                el.addEventListener(event, handler, opts);
+            };
+            const setClass = (el, cls, enabled) => {
+                if (!el) return;
+                el.classList.toggle(cls, !!enabled);
+            };
+
+            try {
+
+                (function () {
+                    try {
+                        var STORAGE_KEY = 'v12_card_shangyemoshi_tuner_v1';
+                        var defaults = { w: 531, top: -49, right: -8 };
+                        var toggle = document.getElementById('img-tuner-toggle');
+                        var panel = document.getElementById('img-tuner');
+                        var reset = document.getElementById('img-tuner-reset');
+                        if (!toggle || !panel) return;
+
+                    function applyVars(v) {
+                        var root = document.documentElement;
+                        root.style.setProperty('--card-shangyemoshi-w', String(v.w) + 'px');
+                        root.style.setProperty('--card-shangyemoshi-top', String(v.top) + '%');
+                        root.style.setProperty('--card-shangyemoshi-right', String(v.right) + '%');
+                    }
+
+                    function load() {
+                        try {
+                            var raw = localStorage.getItem(STORAGE_KEY);
+                            if (!raw) return null;
+                            var obj = JSON.parse(raw);
+                            return {
+                                w: typeof obj.w === 'number' ? obj.w : defaults.w,
+                                top: typeof obj.top === 'number' ? obj.top : defaults.top,
+                                right: typeof obj.right === 'number' ? obj.right : defaults.right
+                            };
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+
+                    function save(v) {
+                        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch (e) {}
+                    }
+
+                    var state = load();
+                    if (state) applyVars(state);
+
+                    function setOpen(open) {
+                        panel.classList.toggle('is-open', !!open);
+                    }
+
+                    function setRowValue(row, val) {
+                        var range = row.querySelector('input[type="range"]');
+                        var num = row.querySelector('input[type="number"]');
+                        if (range) range.value = String(val);
+                        if (num) num.value = String(val);
+                    }
+
+                    function bindRow(row) {
+                        var key = row.getAttribute('data-key');
+                        if (!key) return;
+                        var range = row.querySelector('input[type="range"]');
+                        var num = row.querySelector('input[type="number"]');
+                        if (!range || !num) return;
+
+                        var cur = state[key];
+                        if (typeof cur === 'number') setRowValue(row, cur);
+
+                        function sync(val) {
+                            var n = Math.round(isFinite(val) ? val : defaults[key]);
+                            state[key] = n;
+                            setRowValue(row, n);
+                            applyVars(state);
+                            save(state);
+                        }
+
+                        range.addEventListener('input', function () { sync(parseFloat(range.value)); });
+                        num.addEventListener('input', function () { sync(parseFloat(num.value)); });
+                    }
+
+                    panel.querySelectorAll('.img-tuner-row').forEach(bindRow);
+
+                    toggle.addEventListener('click', function () {
+                        setOpen(!panel.classList.contains('is-open'));
+                    });
+
+                    if (reset) {
+                        reset.addEventListener('click', function () {
+                            state = { w: defaults.w, top: defaults.top, right: defaults.right };
+                            applyVars(state);
+                            save(state);
+                            panel.querySelectorAll('.img-tuner-row').forEach(function (row) {
+                                var k = row.getAttribute('data-key');
+                                if (!k) return;
+                                setRowValue(row, state[k]);
+                            });
+                        });
+                    }
+                    } catch (e) {}
+                })();
+
+            const searchMode = 'H';
+            const demoMode = '3';
+
+            const searchE = qs('#v12-search-mode-e');
+            const searchF = qs('#v12-search-mode-f');
+            const searchG = qs('#v12-search-mode-g');
+            const searchH = qs('#v12-search-mode-h');
+
+            const ALL_SEARCH_PANELS = [searchE, searchF, searchG, searchH];
+            const CMDK_ENABLED_MODES = ['E', 'F', 'G', 'H'];
+
+            function hideAllSearchPanels() {
+                ALL_SEARCH_PANELS.forEach((el) => setClass(el, 'hidden', true));
+            }
+
+            const headerSearch = qs('#v12-header-search');
+            const headerSearchInput = qs('#v12-header-search-input');
+
+            const heroLeft = qs('#v12-hero-left');
+            const heroCtaRow = qs('#v12-hero-cta-row');
+            const heroEntryCards = qs('#v12-hero-entry-cards');
+            const heroRight = qs('#v12-hero-right');
+            const heroCmdkBtn = qs('#v12-hero-cmdk');
+            const heroSubtitle = qs('[data-i18n="hero_subtitle"]');
+
+            const cmdkOverlay = qs('#v12-cmdk-overlay');
+            const cmdk = qs('#v12-cmdk');
+            const cmdkInput = qs('#v12-cmdk-input');
+
+            let fitHeroSubtitleRaf = 0;
+            function scheduleFitHeroSubtitle() {
+                try {
+                    if (fitHeroSubtitleRaf) cancelAnimationFrame(fitHeroSubtitleRaf);
+                    fitHeroSubtitleRaf = requestAnimationFrame(() => {
+                        fitHeroSubtitleRaf = 0;
+                        fitHeroSubtitle();
+                    });
+                } catch (e) {}
+            }
+
+            function setSearchMode(mode) {
+                hideAllSearchPanels();
+                setClass(headerSearch, 'is-on', false);
+
+                if (mode === 'E') setClass(searchE, 'hidden', false);
+                else if (mode === 'F') setClass(searchF, 'hidden', false);
+                else if (mode === 'G') setClass(searchG, 'hidden', false);
+                else setClass(searchH, 'hidden', false);
+            }
+
+            function fitHeroSubtitle() {
+                if (!heroSubtitle) return;
+                try {
+                    heroSubtitle.style.fontSize = '';
+                    heroSubtitle.style.letterSpacing = '';
+                    heroSubtitle.style.maxWidth = '';
+
+                    const cs = window.getComputedStyle(heroSubtitle);
+                    const fontSize = parseFloat(cs.fontSize) || 18;
+                    const lhRaw = cs.lineHeight;
+                    const lineHeight = lhRaw === 'normal' ? fontSize * 1.35 : (parseFloat(lhRaw) || fontSize * 1.35);
+
+                    const countLines = () => {
+                        const h = heroSubtitle.scrollHeight;
+                        return Math.max(1, Math.round(h / lineHeight));
+                    };
+
+                    let lines = countLines();
+                    if (lines <= 3) return;
+
+                    let size = fontSize;
+                    const minSize = 14;
+                    for (let i = 0; i < 16 && lines > 3 && size > minSize; i++) {
+                        size = Math.max(minSize, size - 0.5);
+                        heroSubtitle.style.fontSize = size + 'px';
+                        lines = countLines();
+                    }
+                    if (lines > 3) {
+                        heroSubtitle.style.letterSpacing = '-0.01em';
+                        lines = countLines();
+                    }
+                } catch (e) {}
+            }
+
+            function setDemoMode(mode) {
+                const m = String(mode || '0');
+                setClass(heroCtaRow, 'hidden', m === '0' || m === '2');
+                setClass(heroEntryCards, 'hidden', m === '0' || m === '2');
+
+                const showRight = m === '0';
+                setClass(heroRight, 'hidden', !showRight);
+                if (heroLeft) {
+                    heroLeft.classList.toggle('col-span-8', showRight);
+                    heroLeft.classList.toggle('col-span-12', !showRight);
+                }
+
+                if (m === '1' || m === '3') {
+                    setSearchMode('F');
+                    hideAllSearchPanels();
+                    if (m === '3') setClass(heroEntryCards, 'hidden', false);
+                } else if (m === '2') {
+                    setSearchMode('H');
+                } else {
+                    setSearchMode(searchMode);
+                }
+            }
+
+            function setCmdkOpen(open) {
+                if (!cmdkOverlay || !cmdk) return;
+                setClass(cmdkOverlay, 'is-open', open);
+                setClass(cmdk, 'is-open', open);
+                if (open && cmdkInput) setTimeout(() => cmdkInput.focus(), 30);
+            }
+
+            function maybeToggleHeaderSearch() {
+                if (!headerSearch) return;
+                if (searchMode !== 'F') return;
+                const y = window.scrollY || document.documentElement.scrollTop || 0;
+                setClass(headerSearch, 'is-on', y > 120);
+            }
+
+            setSearchMode(searchMode);
+            maybeToggleHeaderSearch();
+            on(window, 'scroll', maybeToggleHeaderSearch, { passive: true });
+
+            setDemoMode(demoMode);
+
+            const trigger = qs('#v12-search-trigger');
+            const moduleOpen = qs('#v12-search-module-open');
+
+            [trigger, moduleOpen, heroCmdkBtn].forEach((el) => {
+                if (!el) return;
+                on(el, 'click', () => setCmdkOpen(true));
+            });
+
+            on(cmdkOverlay, 'click', () => setCmdkOpen(false));
+            on(window, 'keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k') {
+                    if (CMDK_ENABLED_MODES.includes(searchMode)) {
+                        e.preventDefault();
+                        setCmdkOpen(true);
+                    }
+                }
+                if (e.key === 'Escape') setCmdkOpen(false);
+            });
+
+            if (headerSearchInput) {
+                on(headerSearchInput, 'focus', () => {
+                    if (searchMode === 'F') setCmdkOpen(true);
+                });
+            }
+
+            const viewport = qs('#v12-viewport');
+            const header = qs('#v12-header');
+            const headerGlass = qs('#v12-header-glass');
+            const track = qs('#v12-track');
+            const carouselStep = 480; // item width + gap
+            const carouselNextBtn = qs('#v12-next');
+            const carouselPrevBtn = qs('#v12-prev');
+            let offset = 0;
+
+            const syncHeaderGlass = () => {
+                if (!header || !headerGlass) return;
+                const rect = header.getBoundingClientRect();
+                headerGlass.style.height = rect.height + 'px';
+                headerGlass.style.transform = `translate3d(0, ${rect.top}px, 0)`;
+            };
+
+            // V12 进阶版自适应逻辑：锁定 1440px 宽度
+            const waitForFonts = () => {
+                const fonts = document.fonts;
+                if (!fonts || !fonts.ready) return Promise.resolve();
+                return Promise.race([
+                    fonts.ready,
+                    new Promise((resolve) => setTimeout(resolve, 200))
+                ]);
+            };
+
+            const ensureCriticalFonts = () => {
+                try {
+                    const fonts = document.fonts;
+                    if (!fonts || !fonts.load) return Promise.resolve();
+                    return Promise.all([
+                        fonts.load('900 1em "Noto Sans SC"'),
+                        fonts.load('700 1em "Noto Sans SC"'),
+                        fonts.load('700 1em "Space Grotesk"')
+                    ]).catch(() => {});
+                } catch (e) {
+                    return Promise.resolve();
+                }
+            };
+
+            const waitForCriticalFontChecks = () => {
+                try {
+                    const fonts = document.fonts;
+                    if (!fonts || !fonts.check) return Promise.resolve();
+
+                    const isReady = () => {
+                        return (
+                            fonts.check('900 1em "Noto Sans SC"') &&
+                            fonts.check('700 1em "Noto Sans SC"') &&
+                            fonts.check('700 1em "Space Grotesk"')
+                        );
+                    };
+
+                    if (isReady()) return Promise.resolve();
+
+                    return new Promise((resolve) => {
+                        const start = Date.now();
+                        const tick = () => {
+                            if (isReady()) return resolve();
+                            if (Date.now() - start > 1600) return resolve();
+                            setTimeout(tick, 50);
+                        };
+                        tick();
+                    });
+                } catch (e) {
+                    return Promise.resolve();
+                }
+            };
+
+            const waitForStableViewport = () => {
+                return new Promise((resolve) => {
+                    let lastW = 0;
+                    let stable = 0;
+                    let frames = 0;
+                    const maxFrames = 30;
+                    const tick = () => {
+                        frames += 1;
+                        const w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                        const wRounded = Math.round(w * 100) / 100;
+                        if (wRounded === lastW) stable += 1;
+                        else stable = 0;
+                        lastW = wRounded;
+                        if (stable >= 3 || frames >= maxFrames) {
+                            resolve();
+                            return;
+                        }
+                        requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                });
+            };
+
+            const applyScale = () => {
+                const designWidth = 1440;
+                const viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                let scale = viewportWidth / designWidth;
+                if (scale > 1) scale = 1;
+                scale = Math.round(scale * 10000) / 10000;
+                viewport.style.zoom = String(scale);
+                document.documentElement.style.setProperty('--initial-scale', String(scale));
+                syncHeaderGlass();
+            };
+
+            let scaleRaf = 0;
+            const requestScaleUpdate = () => {
+                if (scaleRaf) return;
+                scaleRaf = requestAnimationFrame(() => {
+                    scaleRaf = 0;
+                    applyScale();
+                });
+            };
+
+            // 轮播控制逻辑
+            on(carouselNextBtn, 'click', () => {
+                const max = (track.children.length - 2) * carouselStep;
+                if (Math.abs(offset) < max) {
+                    offset -= carouselStep;
+                    track.style.transform = `translateX(${offset}px)`;
+                }
+            });
+
+            on(carouselPrevBtn, 'click', () => {
+                if (offset < 0) {
+                    offset += carouselStep;
+                    track.style.transform = `translateX(${offset}px)`;
+                }
+            });
+
+            // 初始化与监听
+            let scaleListenersBound = false;
+            const bindScaleListeners = () => {
+                if (scaleListenersBound) return;
+                scaleListenersBound = true;
+                on(window, 'resize', requestScaleUpdate);
+                if (window.visualViewport) {
+                    on(window.visualViewport, 'resize', requestScaleUpdate);
+                }
+            };
+            applyScale();
+
+            const MAX_REVEAL_WAIT_MS = 1200;
+            const withTimeout = (p, ms) => Promise.race([p, new Promise((resolve) => setTimeout(resolve, ms))]);
+
+            Promise.all([
+                waitForStableViewport(),
+                withTimeout(Promise.all([waitForFonts(), ensureCriticalFonts(), waitForCriticalFontChecks()]), MAX_REVEAL_WAIT_MS)
+            ]).then(() => {
+                applyScale();
+                requestAnimationFrame(() => {
+                    document.body.classList.add('v12-ready');
+                    viewport.style.visibility = 'visible';
+                    requestScaleUpdate();
+                    setTimeout(() => {
+                        bindScaleListeners();
+                        requestScaleUpdate();
+                    }, 200);
+                });
+            });
+
+            const navLinks = qsa('a.v12-nav-link');
+            const ANCHOR_OFFSET = 96;
+            const sections = navLinks
+                .map((a) => {
+                    const href = a.getAttribute('href') || '';
+                    const id = href.startsWith('#') ? href.slice(1) : '';
+                    return { a, el: id ? qs('#' + id) : null };
+                })
+                .filter((x) => x.el);
+
+            function setActiveNavLink(activeLink) {
+                navLinks.forEach((a) => setClass(a, 'is-active', a === activeLink));
+            }
+
+            function scrollToSection(el) {
+                const top = Math.max(0, (el?.offsetTop || 0) - ANCHOR_OFFSET);
+                window.scrollTo({ top, behavior: 'smooth' });
+            }
+
+            navLinks.forEach((a) => {
+                on(a, 'click', (e) => {
+                    const href = a.getAttribute('href') || '';
+                    const id = href.startsWith('#') ? href.slice(1) : '';
+                    const el = id ? qs('#' + id) : null;
+                    if (!el) return;
+                    e.preventDefault();
+                    setActiveNavLink(a);
+                    scrollToSection(el);
+                });
+            });
+
+            function updateHeaderAndNav() {
+                const y = window.scrollY || document.documentElement.scrollTop || 0;
+                document.documentElement.style.setProperty('--glass-scroll-y', y + 'px');
+                setClass(header, 'v12-header-scrolled', false);
+
+                const pos = y + ANCHOR_OFFSET + 1;
+                let active = sections[0]?.a || null;
+                for (const s of sections) {
+                    const top = s.el.offsetTop;
+                    if (top <= pos) active = s.a;
+                }
+                setActiveNavLink(active);
+            }
+
+            let navTicking = false;
+            function scheduleNavUpdate() {
+                if (navTicking) return;
+                navTicking = true;
+                requestAnimationFrame(() => {
+                    navTicking = false;
+                    updateHeaderAndNav();
+                });
+            }
+
+            on(window, 'scroll', () => {
+                syncHeaderGlass();
+                scheduleNavUpdate();
+            }, { passive: true });
+            updateHeaderAndNav();
+            syncHeaderGlass();
+
+            function focusModule(key) {
+                const target = qs(`[data-v12-module="${key}"]`);
+                if (!target) return;
+                target.classList.add('v12-focus');
+                setTimeout(() => target.classList.remove('v12-focus'), 1200);
+            }
+
+            function setSelectedCard(el) {
+                qsa('.v12-selected').forEach((n) => n.classList.remove('v12-selected'));
+                if (el && el.classList) el.classList.add('v12-selected');
+            }
+
+            const STATIC_ROUTES = {
+                intro: 'project-intro.html',
+                faq: 'faq-pages.html',
+                whitepaper: 'whitepaper.html'
+            };
+
+            const maybeNavigateStatic = (key) => {
+                const href = key ? STATIC_ROUTES[String(key)] : '';
+                if (!href) return false;
+                window.location.href = href;
+                return true;
+            };
+
+            const drawer = qs('#v12-drawer');
+            const drawerOverlay = qs('#v12-drawer-overlay');
+            const drawerClose = qs('#v12-drawer-close');
+            const drawerMeta = qs('#v12-drawer-meta');
+            const drawerTitle = qs('#v12-drawer-title');
+            const drawerStatus = qs('#v12-drawer-status');
+            const drawerDesc = qs('#v12-drawer-desc');
+            const drawerPrimary = qs('#v12-drawer-primary');
+            const drawerSecondary = qs('#v12-drawer-secondary');
+            const drawerUpdates = qs('#v12-drawer-updates');
+            let activeModuleKey = '';
+
+            const MODULE_DATA = {
+                faq: {
+                    meta: 'MODULE / FAQ_CENTER',
+                    title: '百问百答 CENTER',
+                    status: 'ACTIVE',
+                    desc: '全局模糊检索与即时解析入口。用最短路径定位协议问题、标准回答与关联文档。',
+                    primary: 'Open',
+                    secondary: 'Run Query',
+                    updates: [
+                        { type: 'UPDATE / MODULE', date: '2026-02-25', title: '索引分词策略优化', note: '对高频问题命中率提升，响应更稳定。' },
+                        { type: 'UPDATE / CORE', date: '2026-02-18', title: '多语言问答映射', note: '支持同义问题跨语言归并与回溯。' },
+                        { type: 'UPDATE / FIX', date: '2026-02-06', title: '引用链路修复', note: '解决部分条目跳转断链。' }
+                    ]
+                },
+                whitepaper: {
+                    meta: 'MODULE / WHITEPAPER',
+                    title: '白皮书',
+                    status: 'PRIMARY',
+                    desc: '白皮书入口：阅读正文、看版本差异、提取重点摘要与关键结论。',
+                    primary: 'Open',
+                    secondary: 'Read',
+                    updates: [
+                        { type: 'UPDATE / CORE', date: '2026-02-25', title: '章节索引补全', note: '新增章节快速跳转与目录定位。' },
+                        { type: 'UPDATE / MODULE', date: '2026-02-18', title: '重点摘要聚合', note: '统一展示关键结论与风险提示。' },
+                        { type: 'UPDATE / FIX', date: '2026-02-06', title: '引用/脚注优化', note: '提升阅读连贯性与可追溯性。' }
+                    ]
+                },
+                tools: {
+                    meta: 'MODULE / AUDIT',
+                    title: '安全审计控制台',
+                    status: 'READY',
+                    desc: '可视化查看审计覆盖率、风险分布与关键告警。对外发布前的最后一道检查。',
+                    primary: 'Open',
+                    secondary: 'Run Scan',
+                    updates: [
+                        { type: 'UPDATE / SECURITY', date: '2026-02-25', title: '风险等级分层', note: '统一严重程度与建议动作模板。' },
+                        { type: 'UPDATE / MODULE', date: '2026-02-18', title: '告警聚合规则', note: '减少重复告警，突出关键路径。' },
+                        { type: 'UPDATE / FIX', date: '2026-02-06', title: '报告导出兼容', note: '增强 PDF/JSON 导出字段一致性。' }
+                    ]
+                },
+                docs: {
+                    meta: 'MODULE / LIBRARY',
+                    title: '核心资料库',
+                    status: 'SYNCED',
+                    desc: '结构化浏览文档、白皮书、资源与节点索引。支持按主题/标签/版本快速定位。',
+                    primary: 'Browse',
+                    secondary: 'Open Docs',
+                    updates: [
+                        { type: 'UPDATE / CORE', date: '2026-02-25', title: '目录结构重排', note: '按核心路径重组分类，减少层级跳转。' },
+                        { type: 'UPDATE / MODULE', date: '2026-02-18', title: '标签体系补全', note: '新增协议/工具/节点维度标签。' },
+                        { type: 'UPDATE / FIX', date: '2026-02-06', title: '内容缓存策略', note: '提升弱网加载稳定性。' }
+                    ]
+                },
+                en: {
+                    command_placeholder: 'Search modules / whitepaper / docs / faq…',
+                    cmdk: 'Shortcut',
+                    hero_title_line1: 'Built on the W/A Protocol',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> gateway to digital civilization',
+                    hero_subtitle: 'Through the Web4 ecosystem, we connect a seamless decentralized world—aggregating global AI compute and the value of an advertising matrix to build a sustainably compounding digital wealth hub.',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the full paper, key highlights, and version differences.',
+                    open: 'Open',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.'
+                },
+                id: {
+                    command_placeholder: 'Cari modul / whitepaper / docs / FAQ…',
+                    cmdk: 'Pintasan',
+                    hero_title_line1: 'Dibangun di atas Protokol W/A',
+                    hero_title_line2: 'Gerbang <span class="text-brand">Web4.0</span> menuju peradaban digital',
+                    hero_subtitle: 'Melalui ekosistem Web4, kami membangun dunia terdesentralisasi yang terhubung mulus—mengagregasi komputasi AI global dan nilai matriks iklan untuk menciptakan pusat kekayaan digital yang terus bertumbuh.',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Dokumen',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Baca naskah lengkap, sorotan utama, dan perbedaan versi.',
+                    open: 'Buka',
+                    core_lead: 'Pilih satu modul. Setiap modul memiliki status, tujuan, dan aksi.'
+                },
+                vi: {
+                    command_placeholder: 'Tìm mô-đun / whitepaper / tài liệu / FAQ…',
+                    cmdk: 'Phím tắt',
+                    hero_title_line1: 'Xây dựng trên Giao thức W/A',
+                    hero_title_line2: 'Cổng <span class="text-brand">Web4.0</span> cho nền văn minh số',
+                    hero_subtitle: 'Thông qua hệ sinh thái Web4, chúng tôi kiến tạo một thế giới phi tập trung kết nối liền mạch—tổng hợp năng lực tính toán AI toàn cầu và giá trị ma trận quảng cáo để tạo nên trung tâm tài sản số tăng trưởng bền vững.',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Tài liệu',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Đọc bản đầy đủ, điểm chính và khác biệt giữa các phiên bản.',
+                    open: 'Mở',
+                    core_lead: 'Chọn một mô-đun. Mỗi mô-đun có trạng thái, mục tiêu và hành động.'
+                },
+                jp: {
+                    command_placeholder: 'モジュール / ホワイトペーパー / ドキュメント / FAQ を検索…',
+                    cmdk: 'ショートカット',
+                    hero_title_line1: 'W/A プロトコルを基盤に',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> デジタル文明への入口',
+                    hero_subtitle: 'Web4 エコシステムを通じてシームレスにつながる分散型世界を構築し、世界の AI 計算資源と広告マトリクスの価値を集約して、持続的に価値が増すデジタル資産ハブを実現します。',
+                    whitepaper: 'ホワイトペーパー',
+                    docs: 'ドキュメント',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: 'ホワイトペーパー',
+                    whitepaper_cn_desc: '本文、要点、バージョン差分を確認できます。',
+                    open: '開く',
+                    core_lead: 'モジュールを選択してください。各モジュールにはステータス、目的、アクションがあります。'
+                },
+                ko: {
+                    command_placeholder: '모듈 / 백서 / 문서 / FAQ 검색…',
+                    cmdk: '단축키',
+                    hero_title_line1: 'W/A 프로토콜을 기반으로',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> 디지털 문명의 관문',
+                    hero_subtitle: 'Web4 생태계를 통해 매끄럽게 연결되는 탈중앙화 세계를 구축하고, 전 세계 AI 연산 자원과 광고 매트릭스 가치를 집약하여 지속적으로 가치가 증대되는 디지털 부(富)의 허브를 만듭니다.',
+                    whitepaper: '백서',
+                    docs: '문서',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: '백서',
+                    whitepaper_cn_desc: '본문, 핵심 요약, 버전 차이를 확인하세요.',
+                    open: '열기',
+                    core_lead: '모듈을 하나 선택하세요. 각 모듈에는 상태, 목적, 액션이 있습니다.'
+                },
+                th: {
+                    command_placeholder: 'ค้นหาโมดูล / ไวท์เปเปอร์ / เอกสาร / FAQ…',
+                    cmdk: 'คีย์ลัด',
+                    hero_title_line1: 'สร้างบนโปรโตคอล W/A',
+                    hero_title_line2: 'ประตูสู่ <span class="text-brand">Web4.0</span> อารยธรรมดิจิทัล',
+                    hero_subtitle: 'ผ่านระบบนิเวศ Web4 เราสร้างโลกกระจายศูนย์ที่เชื่อมต่ออย่างไร้รอยต่อ—ผสานพลังประมวลผล AI ทั่วโลกและมูลค่าจากเครือข่ายโฆษณา เพื่อสร้างศูนย์กลางความมั่งคั่งดิจิทัลที่เติบโตอย่างยั่งยืน',
+                    whitepaper: 'ไวท์เปเปอร์',
+                    docs: 'เอกสาร',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: 'ไวท์เปเปอร์',
+                    whitepaper_cn_desc: 'อ่านฉบับเต็ม ไฮไลต์สำคัญ และความแตกต่างของเวอร์ชัน',
+                    open: 'เปิด',
+                    core_lead: 'เลือกหนึ่งโมดูล แต่ละโมดูลมีสถานะ เป้าหมาย และการกระทำ'
+                }
+            };
+
+            function setDrawerOpen(open) {
+                if (!drawer || !drawerOverlay) return;
+                setClass(drawer, 'is-open', open);
+                setClass(drawerOverlay, 'is-open', open);
+                drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+                document.body.style.overflow = open ? 'hidden' : '';
+            }
+
+            function renderUpdates(items) {
+                if (!drawerUpdates) return;
+                drawerUpdates.innerHTML = items
+                    .map((u) => {
+                        return `
+                            <div class="p-card p-4 bg-black/20">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-[9px] font-mono text-brand/90 tracking-[4px]">${u.type}</div>
+                                    <div class="text-[9px] font-mono text-white/25 tracking-[3px]">${u.date}</div>
+                                </div>
+                                <div class="mt-2 text-sm font-black italic tracking-tight">${u.title}</div>
+                                <div class="mt-2 text-[11px] text-white/35 leading-relaxed">${u.note}</div>
+                            </div>
+                        `;
+                    })
+                    .join('');
+            }
+
+            function openModule(key) {
+                const data = MODULE_DATA[key];
+                if (!data) return;
+                activeModuleKey = String(key || '');
+                if (drawerMeta) drawerMeta.textContent = data.meta;
+                if (drawerTitle) drawerTitle.textContent = data.title;
+                if (drawerStatus) drawerStatus.textContent = data.status;
+                if (drawerDesc) drawerDesc.textContent = data.desc;
+                if (drawerPrimary) drawerPrimary.textContent = data.primary;
+                if (drawerSecondary) drawerSecondary.textContent = data.secondary;
+                renderUpdates(data.updates || []);
+                setDrawerOpen(true);
+                setTimeout(() => {
+                    const input = qs('#v12-command');
+                    if (input) input.blur();
+                }, 50);
+            }
+
+            setDrawerOpen(false);
+
+            if (drawerPrimary) {
+                on(drawerPrimary, 'click', () => {
+                    maybeNavigateStatic(activeModuleKey);
+                });
+            }
+
+            on(drawerOverlay, 'click', () => setDrawerOpen(false));
+            on(drawerClose, 'click', () => setDrawerOpen(false));
+            on(window, 'keydown', (e) => {
+                if (e.key === 'Escape') setDrawerOpen(false);
+            });
+
+            qsa('[data-v12-module]').forEach((el) => {
+                on(el, 'click', () => {
+                    setSelectedCard(el);
+                    const key = el.getAttribute('data-v12-module');
+                    if (!key) return;
+                    if (maybeNavigateStatic(key)) return;
+                    openModule(key);
+                });
+            });
+
+                qsa('[data-v12-jump]').forEach((btn) => {
+                    on(btn, 'click', () => {
+                        setSelectedCard(btn);
+                        const key = btn.getAttribute('data-v12-jump');
+                        if (maybeNavigateStatic(key)) return;
+                        const core = qs('#v12-resources');
+                        if (core) core.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        setTimeout(() => {
+                            const nextKey = key === 'whitepaper' ? 'whitepaper' : key === 'tools' ? 'tools' : key === 'docs' ? 'docs' : 'faq';
+                            focusModule(nextKey);
+                            openModule(nextKey);
+                        }, 350);
+                    });
+                });
+
+            } catch (e) {}
+
+            const I18N = {
+                cn: {
+                    command_placeholder: '搜索模块 / 白皮书 / 文档 / 问答…',
+                    cmdk: '快捷键',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: '总览',
+                    nav_core_main: 'Core',
+                    nav_core_sub: '核心',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: '动态',
+                    core_modules_title: '核心模块',
+                    view_all_modules: '查看全部模块',
+                    browse: '浏览',
+                    module_faq_title: '百问百答',
+                    module_faq_desc: '快速定位常见问题与风险点',
+                    module_tools_title: '安全审计',
+                    module_tools_desc: '审计进展、披露与安全行动',
+                    module_docs_title: '资料库',
+                    module_docs_desc: '教程、工具与参考资料合集',
+                    module_official_title: '官方入口',
+                    module_official_desc: '官网、合约、社媒一键体验',
+                    module_notice_title: '公告',
+                    module_notice_desc: '最新更新、变更与提醒',
+                    header_search_placeholder: '搜索…',
+                    enter_core: '进入核心',
+                    scroll_reveal_header_command: '下滑以唤出 Header Command',
+                    search_command_title: '搜索 / 命令',
+                    search_command_desc: '输入以查找模块、白皮书、文档、FAQ…',
+                    drawer_close: '关闭',
+                    drawer_open: '打开',
+                    drawer_run: '运行',
+                    drawer_recent_updates: '最近更新',
+                    drawer_last_30_days: '近 30 天',
+                    drawer_quick_actions: '快捷操作',
+                    drawer_pin: '置顶',
+                    drawer_share: '分享',
+                    cmdk_input_placeholder: '搜索模块、文档、FAQ…',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: '打开白皮书',
+                    cmdk_open_faq: '打开 FAQ',
+                    cmdk_browse_docs: '浏览文档',
+                    cmdk_open_tools: '打开工具',
+                    hero_title_line1: '基于 W/A <span style="display:inline-flex;align-items:baseline;gap:0;vertical-align:-0.08em;"><img src="assets/hero-title-xie-outline.svg?v=20260304-1027" alt="协" style="display:block;height:1em;width:auto;" /><img src="assets/hero-title-yi-outline.svg?v=20260304-1027" alt="议" style="display:block;height:1em;width:auto;" /></span>构建',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span>数字文明入口',
+                    hero_subtitle: '通过 Web4 生态系统构建无缝连接的去中心化世界，聚合全球 AI 算力与广告矩阵价值，打造永续增值的数字财富中枢',
+                    hero_entry_intro_title: '项目介绍',
+                    hero_entry_intro_desc: '必读概览',
+                    hero_entry_docs_title: '战略规划',
+                    hero_entry_docs_desc: '文档教程',
+                    hero_entry_tools_title: '核心模式',
+                    hero_entry_tools_desc: '安全工具',
+                    hero_entry_whitepaper_title: '商业模式',
+                    hero_entry_whitepaper_desc: '版本摘要',
+                    whitepaper: '白皮书',
+                    docs: '文档',
+                    cmdk_kbd: 'Cmd K',
+                    whitepaper_cn_title: '白皮书',
+                    whitepaper_cn_desc: '查看白皮书正文、版本差异与重点摘要。',
+                    open: '打开'
+                },
+                en: {
+                    command_placeholder: 'Search modules / whitepaper / docs / faq…',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: 'Overview',
+                    nav_core_main: 'Core',
+                    nav_core_sub: 'Core',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: 'Updates',
+                    core_modules_title: 'Core Modules',
+                    view_all_modules: 'View All Modules',
+                    browse: 'Browse',
+                    module_faq_title: 'FAQ Center',
+                    module_faq_desc: 'Quickly locate common questions and risks',
+                    module_tools_title: 'Security Audit',
+                    module_tools_desc: 'Audit progress, disclosure, and security actions',
+                    module_docs_title: 'Library',
+                    module_docs_desc: 'Tutorials, tools, and references',
+                    module_official_title: 'Official Links',
+                    module_official_desc: 'Website, contracts, and socials in one place',
+                    module_notice_title: 'Notices',
+                    module_notice_desc: 'Latest updates, changes, and reminders',
+                    header_search_placeholder: 'Search…',
+                    enter_core: 'Enter Core',
+                    scroll_reveal_header_command: 'Scroll to reveal header command',
+                    search_command_title: 'Search / Command',
+                    search_command_desc: 'Type to find modules, whitepaper, docs, faq…',
+                    drawer_close: 'Close',
+                    drawer_open: 'Open',
+                    drawer_run: 'Run',
+                    drawer_recent_updates: 'Recent Updates',
+                    drawer_last_30_days: 'Last 30 days',
+                    drawer_quick_actions: 'Quick Actions',
+                    drawer_pin: 'Pin',
+                    drawer_share: 'Share',
+                    cmdk_input_placeholder: 'Search modules, docs, faq…',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'Open Whitepaper',
+                    cmdk_open_faq: 'Open FAQ',
+                    cmdk_browse_docs: 'Browse Docs',
+                    cmdk_open_tools: 'Open Tools',
+                    hero_title_line1: 'Built on the W/A Protocol',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> gateway to digital civilization',
+                    hero_subtitle: 'Through the Web4 ecosystem, we build a seamlessly connected decentralized world—aggregating global AI compute and the value of an advertising matrix to create a sustainably compounding digital wealth hub.',
+                    hero_entry_intro_title: 'Overview',
+                    hero_entry_intro_desc: 'Must-read',
+                    hero_entry_docs_title: 'Strategy',
+                    hero_entry_docs_desc: 'Docs',
+                    hero_entry_tools_title: 'Core',
+                    hero_entry_tools_desc: 'Security',
+                    hero_entry_whitepaper_title: 'Model',
+                    hero_entry_whitepaper_desc: 'Versions',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                },
+                id: {
+                    command_placeholder: 'Search modules, docs, faq...',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: 'Ikhtisar',
+                    nav_core_main: 'Core',
+                    nav_core_sub: 'Inti',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: 'Pembaruan',
+                    core_modules_title: 'Modul Inti',
+                    view_all_modules: 'Lihat Semua Modul',
+                    browse: 'Telusuri',
+                    module_faq_title: 'Pusat FAQ',
+                    module_faq_desc: 'Temukan cepat pertanyaan umum dan risiko',
+                    module_tools_title: 'Audit Keamanan',
+                    module_tools_desc: 'Progres audit, pengungkapan, dan aksi keamanan',
+                    module_docs_title: 'Perpustakaan',
+                    module_docs_desc: 'Tutorial, tools, dan referensi',
+                    module_official_title: 'Tautan Resmi',
+                    module_official_desc: 'Website, kontrak, dan sosial dalam satu tempat',
+                    module_notice_title: 'Pengumuman',
+                    module_notice_desc: 'Pembaruan, perubahan, dan pengingat terbaru',
+                    header_search_placeholder: 'Cari…',
+                    enter_core: 'Masuk ke Core',
+                    scroll_reveal_header_command: 'Gulir untuk menampilkan perintah header',
+                    search_command_title: 'Pencarian / Perintah',
+                    search_command_desc: 'Ketik untuk mencari modul, whitepaper, docs, faq…',
+                    drawer_close: 'Tutup',
+                    drawer_open: 'Buka',
+                    drawer_run: 'Jalankan',
+                    drawer_recent_updates: 'Pembaruan Terbaru',
+                    drawer_last_30_days: '30 hari terakhir',
+                    drawer_quick_actions: 'Aksi Cepat',
+                    drawer_pin: 'Sematkan',
+                    drawer_share: 'Bagikan',
+                    cmdk_input_placeholder: 'Cari modul, docs, faq…',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'Buka Whitepaper',
+                    cmdk_open_faq: 'Buka FAQ',
+                    cmdk_browse_docs: 'Telusuri Docs',
+                    cmdk_open_tools: 'Buka Tools',
+                    hero_title_line1: 'Dibangun di atas Protokol W/A',
+                    hero_title_line2: 'Gerbang <span class="text-brand">Web4.0</span> menuju peradaban digital',
+                    hero_subtitle: 'Melalui ekosistem Web4, kami membangun dunia terdesentralisasi yang terhubung mulus—mengagregasi komputasi AI global dan nilai matriks iklan untuk menciptakan pusat kekayaan digital yang terus bertumbuh secara berkelanjutan.',
+                    hero_entry_intro_title: 'Ikhtisar',
+                    hero_entry_intro_desc: 'Wajib baca',
+                    hero_entry_docs_title: 'Strategi',
+                    hero_entry_docs_desc: 'Dokumen',
+                    hero_entry_tools_title: 'Model Inti',
+                    hero_entry_tools_desc: 'Keamanan',
+                    hero_entry_whitepaper_title: 'Model Bisnis',
+                    hero_entry_whitepaper_desc: 'Versi',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                },
+                vi: {
+                    command_placeholder: 'Search modules, docs, faq...',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: 'Tổng quan',
+                    nav_core_main: 'Core',
+                    nav_core_sub: 'Cốt lõi',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: 'Cập nhật',
+                    core_modules_title: 'Mô-đun Cốt lõi',
+                    view_all_modules: 'Xem tất cả mô-đun',
+                    browse: 'Duyệt',
+                    module_faq_title: 'Trung tâm FAQ',
+                    module_faq_desc: 'Tìm nhanh câu hỏi thường gặp và rủi ro',
+                    module_tools_title: 'Kiểm toán Bảo mật',
+                    module_tools_desc: 'Tiến độ kiểm toán, công bố và hành động bảo mật',
+                    module_docs_title: 'Thư viện',
+                    module_docs_desc: 'Hướng dẫn, công cụ và tài liệu tham khảo',
+                    module_official_title: 'Liên kết Chính thức',
+                    module_official_desc: 'Website, hợp đồng và mạng xã hội trong một nơi',
+                    module_notice_title: 'Thông báo',
+                    module_notice_desc: 'Cập nhật, thay đổi và nhắc nhở mới nhất',
+                    header_search_placeholder: 'Tìm kiếm…',
+                    enter_core: 'Vào Core',
+                    scroll_reveal_header_command: 'Cuộn để hiện lệnh ở header',
+                    search_command_title: 'Tìm kiếm / Lệnh',
+                    search_command_desc: 'Gõ để tìm module, whitepaper, docs, faq…',
+                    drawer_close: 'Đóng',
+                    drawer_open: 'Mở',
+                    drawer_run: 'Chạy',
+                    drawer_recent_updates: 'Cập nhật gần đây',
+                    drawer_last_30_days: '30 ngày qua',
+                    drawer_quick_actions: 'Thao tác nhanh',
+                    drawer_pin: 'Ghim',
+                    drawer_share: 'Chia sẻ',
+                    cmdk_input_placeholder: 'Tìm module, docs, faq…',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'Mở Whitepaper',
+                    cmdk_open_faq: 'Mở FAQ',
+                    cmdk_browse_docs: 'Xem Docs',
+                    cmdk_open_tools: 'Mở Tools',
+                    hero_title_line1: 'Xây dựng trên Giao thức W/A',
+                    hero_title_line2: 'Cổng <span class="text-brand">Web4.0</span> cho nền văn minh số',
+                    hero_subtitle: 'Thông qua hệ sinh thái Web4, chúng tôi kiến tạo một thế giới phi tập trung kết nối liền mạch—tổng hợp năng lực tính toán AI toàn cầu và giá trị ma trận quảng cáo để tạo nên trung tâm tài sản số tăng trưởng bền vững.',
+                    hero_entry_intro_title: 'Tổng quan',
+                    hero_entry_intro_desc: 'Cốt lõi',
+                    hero_entry_docs_title: 'Chiến lược',
+                    hero_entry_docs_desc: 'Tài liệu',
+                    hero_entry_tools_title: 'Mô hình lõi',
+                    hero_entry_tools_desc: 'Bảo mật',
+                    hero_entry_whitepaper_title: 'Mô hình KD',
+                    hero_entry_whitepaper_desc: 'Phiên bản',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                },
+                jp: {
+                    command_placeholder: 'Search modules, docs, faq...',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: '概要',
+                    nav_core_main: 'Core',
+                    nav_core_sub: 'コア',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: '更新',
+                    core_modules_title: 'コアモジュール',
+                    view_all_modules: 'すべてのモジュールを見る',
+                    browse: '閲覧',
+                    module_faq_title: 'FAQ センター',
+                    module_faq_desc: 'よくある質問とリスクを素早く確認',
+                    module_tools_title: 'セキュリティ監査',
+                    module_tools_desc: '監査の進捗、開示、セキュリティ対応',
+                    module_docs_title: 'ライブラリ',
+                    module_docs_desc: 'チュートリアル、ツール、参考資料',
+                    module_official_title: '公式リンク',
+                    module_official_desc: '公式サイト、コントラクト、SNS を一括',
+                    module_notice_title: 'お知らせ',
+                    module_notice_desc: '最新の更新、変更、リマインダー',
+                    header_search_placeholder: '検索…',
+                    enter_core: 'Core に入る',
+                    scroll_reveal_header_command: 'スクロールしてヘッダーコマンドを表示',
+                    search_command_title: '検索 / コマンド',
+                    search_command_desc: '入力してモジュール、Whitepaper、Docs、FAQ… を検索',
+                    drawer_close: '閉じる',
+                    drawer_open: '開く',
+                    drawer_run: '実行',
+                    drawer_recent_updates: '最近の更新',
+                    drawer_last_30_days: '過去 30 日',
+                    drawer_quick_actions: 'クイック操作',
+                    drawer_pin: 'ピン留め',
+                    drawer_share: '共有',
+                    cmdk_input_placeholder: 'モジュール、Docs、FAQ… を検索',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'Whitepaper を開く',
+                    cmdk_open_faq: 'FAQ を開く',
+                    cmdk_browse_docs: 'Docs を閲覧',
+                    cmdk_open_tools: 'Tools を開く',
+                    hero_title_line1: 'W/A プロトコルを基盤に',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> デジタル文明への入口',
+                    hero_subtitle: 'Web4 エコシステムを通じてシームレスにつながる分散型世界を構築し、世界の AI 計算資源と広告マトリクスの価値を集約して、持続的に価値が増すデジタル資産ハブを実現します。',
+                    hero_entry_intro_title: '全体概要',
+                    hero_entry_intro_desc: '要点サマリ',
+                    hero_entry_docs_title: '戦略計画',
+                    hero_entry_docs_desc: '主要資料',
+                    hero_entry_tools_title: 'コアモデル',
+                    hero_entry_tools_desc: 'セキュリティ',
+                    hero_entry_whitepaper_title: '事業モデル',
+                    hero_entry_whitepaper_desc: '版・要点',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                },
+                ko: {
+                    command_placeholder: 'Search modules, docs, faq...',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: '개요',
+                    nav_core_main: 'Core',
+                    nav_core_sub: '핵심',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: '업데이트',
+                    core_modules_title: '핵심 모듈',
+                    view_all_modules: '전체 모듈 보기',
+                    browse: '둘러보기',
+                    module_faq_title: 'FAQ 센터',
+                    module_faq_desc: '자주 묻는 질문과 리스크를 빠르게 찾기',
+                    module_tools_title: '보안 감사',
+                    module_tools_desc: '감사 진행, 공개 및 보안 액션',
+                    module_docs_title: '라이브러리',
+                    module_docs_desc: '튜토리얼, 도구, 참고 자료',
+                    module_official_title: '공식 링크',
+                    module_official_desc: '웹사이트, 컨트랙트, 소셜을 한 번에',
+                    module_notice_title: '공지',
+                    module_notice_desc: '최신 업데이트, 변경 사항, 알림',
+                    header_search_placeholder: '검색…',
+                    enter_core: 'Core 진입',
+                    scroll_reveal_header_command: '스크롤하여 헤더 커맨드를 표시',
+                    search_command_title: '검색 / 커맨드',
+                    search_command_desc: '입력하여 모듈, Whitepaper, Docs, FAQ… 를 찾으세요',
+                    drawer_close: '닫기',
+                    drawer_open: '열기',
+                    drawer_run: '실행',
+                    drawer_recent_updates: '최근 업데이트',
+                    drawer_last_30_days: '최근 30일',
+                    drawer_quick_actions: '빠른 작업',
+                    drawer_pin: '고정',
+                    drawer_share: '공유',
+                    cmdk_input_placeholder: '모듈, Docs, FAQ… 검색',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'Whitepaper 열기',
+                    cmdk_open_faq: 'FAQ 열기',
+                    cmdk_browse_docs: 'Docs 보기',
+                    cmdk_open_tools: 'Tools 열기',
+                    hero_title_line1: 'W/A 프로토콜을 기반으로',
+                    hero_title_line2: '<span class="text-brand">Web4.0</span> 디지털 문명의 관문',
+                    hero_subtitle: 'Web4 생태계를 통해 매끄럽게 연결되는 탈중앙화 세계를 구축하고, 전 세계 AI 연산 자원과 광고 매트릭스 가치를 집약하여 지속적으로 가치가 증대되는 디지털 부(富)의 허브를 만듭니다.',
+                    hero_entry_intro_title: '프로젝트 개요',
+                    hero_entry_intro_desc: '핵심 요약',
+                    hero_entry_docs_title: '전략/로드맵',
+                    hero_entry_docs_desc: '문서 모음',
+                    hero_entry_tools_title: '코어 모델',
+                    hero_entry_tools_desc: '보안 도구',
+                    hero_entry_whitepaper_title: '비즈니스 모델',
+                    hero_entry_whitepaper_desc: '버전/요약',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                },
+                th: {
+                    command_placeholder: 'Search modules, docs, faq...',
+                    cmdk: 'Shortcut',
+                    nav_overview_main: 'Overview',
+                    nav_overview_sub: 'ภาพรวม',
+                    nav_core_main: 'Core',
+                    nav_core_sub: 'แกนหลัก',
+                    nav_updates_main: 'Updates',
+                    nav_updates_sub: 'อัปเดต',
+                    core_modules_title: 'โมดูลแกนหลัก',
+                    view_all_modules: 'ดูโมดูลทั้งหมด',
+                    browse: 'เรียกดู',
+                    module_faq_title: 'ศูนย์ FAQ',
+                    module_faq_desc: 'ค้นหาคำถามที่พบบ่อยและความเสี่ยงอย่างรวดเร็ว',
+                    module_tools_title: 'ตรวจสอบความปลอดภัย',
+                    module_tools_desc: 'ความคืบหน้า การเปิดเผย และการดำเนินการด้านความปลอดภัย',
+                    module_docs_title: 'คลังเอกสาร',
+                    module_docs_desc: 'บทแนะนำ เครื่องมือ และเอกสารอ้างอิง',
+                    module_official_title: 'ลิงก์ทางการ',
+                    module_official_desc: 'เว็บไซต์ สัญญา และโซเชียลในที่เดียว',
+                    module_notice_title: 'ประกาศ',
+                    module_notice_desc: 'อัปเดต การเปลี่ยนแปลง และการแจ้งเตือนล่าสุด',
+                    header_search_placeholder: 'ค้นหา…',
+                    enter_core: 'เข้าสู่ Core',
+                    scroll_reveal_header_command: 'เลื่อนเพื่อแสดงคำสั่งที่หัวหน้า',
+                    search_command_title: 'ค้นหา / คำสั่ง',
+                    search_command_desc: 'พิมพ์เพื่อค้นหาโมดูล ไวท์เปเปอร์ เอกสาร FAQ…',
+                    drawer_close: 'ปิด',
+                    drawer_open: 'เปิด',
+                    drawer_run: 'รัน',
+                    drawer_recent_updates: 'อัปเดตล่าสุด',
+                    drawer_last_30_days: '30 วันที่ผ่านมา',
+                    drawer_quick_actions: 'การทำงานด่วน',
+                    drawer_pin: 'ปักหมุด',
+                    drawer_share: 'แชร์',
+                    cmdk_input_placeholder: 'ค้นหาโมดูล เอกสาร FAQ…',
+                    esc: 'Esc',
+                    cmdk_open_whitepaper: 'เปิดไวท์เปเปอร์',
+                    cmdk_open_faq: 'เปิด FAQ',
+                    cmdk_browse_docs: 'ดูเอกสาร',
+                    cmdk_open_tools: 'เปิดเครื่องมือ',
+                    hero_title_line1: 'สร้างบนโปรโตคอล W/A',
+                    hero_title_line2: 'ประตูสู่ <span class="text-brand">Web4.0</span> อารยธรรมดิจิทัล',
+                    hero_subtitle: 'ผ่านระบบนิเวศ Web4 เราสร้างโลกกระจายศูนย์ที่เชื่อมต่ออย่างไร้รอยต่อ—ผสานพลังประมวลผล AI ทั่วโลกและมูลค่าจากเครือข่ายโฆษณา เพื่อสร้างศูนย์กลางความมั่งคั่งดิจิทัลที่เติบโตอย่างยั่งยืน',
+                    hero_entry_intro_title: 'ภาพรวม',
+                    hero_entry_intro_desc: 'ต้องอ่าน',
+                    hero_entry_docs_title: 'กลยุทธ์',
+                    hero_entry_docs_desc: 'เอกสาร',
+                    hero_entry_tools_title: 'แกนหลัก',
+                    hero_entry_tools_desc: 'ความปลอดภัย',
+                    hero_entry_whitepaper_title: 'โมเดล',
+                    hero_entry_whitepaper_desc: 'เวอร์ชัน',
+                    whitepaper: 'Whitepaper',
+                    docs: 'Docs',
+                    snapshot_lead: 'Check the system snapshot, then enter modules.',
+                    core_lead: 'Pick one module. Each module has a status, a purpose, and an action.',
+                    updates_lead: 'What changed recently. Open a note to see details.',
+                    open: 'Open',
+                    whitepaper_cn_title: 'Whitepaper',
+                    whitepaper_cn_desc: 'Read the whitepaper, compare versions, and extract highlights.'
+                }
+            };
+
+            function applyLanguage(lang) {
+                const dict = I18N[lang] || I18N.cn;
+                try { document.documentElement.setAttribute('data-lang', String(lang || 'cn')); } catch (e) {}
+                qsa('[data-i18n]').forEach((el) => {
+                    const key = el.getAttribute('data-i18n');
+                    if (!key || !(key in dict)) return;
+                    if (el.tagName === 'INPUT') el.setAttribute('placeholder', dict[key]);
+                    else if (el.getAttribute('data-i18n-mode') === 'html') el.innerHTML = dict[key];
+                    else el.textContent = dict[key];
+                });
+
+                qsa('[data-i18n-aria-label]').forEach((el) => {
+                    const key = el.getAttribute('data-i18n-aria-label');
+                    if (!key || !(key in dict)) return;
+                    el.setAttribute('aria-label', dict[key]);
+                });
+
+                scheduleFitHeroSubtitle();
+            }
+
+            const langSwitcher = qs('#lang-switcher');
+            const langTrigger = qs('#lang-trigger');
+            const langTriggerLabel = qs('#lang-trigger-label');
+            const langMenu = qs('#lang-menu');
+            const langControl = qs('#lang-control');
+
+            const LANG_META = {
+                cn: { flagCp: [0x1F1E8, 0x1F1F3], name: '简体中文' },
+                en: { flagCp: [0x1F1FA, 0x1F1F8], name: 'English' },
+                id: { flagCp: [0x1F1EE, 0x1F1E9], name: 'Bahasa Indonesia' },
+                vi: { flagCp: [0x1F1FB, 0x1F1F3], name: 'Tiếng Việt' },
+                jp: { flagCp: [0x1F1EF, 0x1F1F5], name: '日本語' },
+                ko: { flagCp: [0x1F1F0, 0x1F1F7], name: '한국어' },
+                th: { flagCp: [0x1F1F9, 0x1F1ED], name: 'ไทย' },
+                ru: { flagCp: [0x1F1F7, 0x1F1FA], name: 'Русский' },
+                es: { flagCp: [0x1F1EA, 0x1F1F8], name: 'Español' },
+                fr: { flagCp: [0x1F1EB, 0x1F1F7], name: 'Français' },
+                zh_tw: { flagCp: [0x1F1F9, 0x1F1FC], name: '繁體中文' }
+            };
+
+            const flagFrom = (flagCp) => {
+                try {
+                    if (!flagCp || !flagCp.length) return String.fromCodePoint(0x1F310);
+                    return String.fromCodePoint.apply(null, flagCp);
+                } catch (e) {
+                    return String.fromCodePoint(0x1F310);
+                }
+            };
+
+            const getLangMeta = (val) => {
+                if (val && LANG_META[val]) return LANG_META[val];
+                const opt = langSwitcher ? Array.from(langSwitcher.options || []).find((o) => o.value === val) : null;
+                const raw = (opt && opt.textContent ? opt.textContent : (val || '')).trim();
+                return { flagCp: [0x1F310], name: raw || (val || 'Language') };
+            };
+
+            const setLangUI = (val) => {
+                if (!langSwitcher) return;
+                const meta = getLangMeta(val);
+                if (langTriggerLabel) langTriggerLabel.innerHTML = `<span class="v12-lang-flag" aria-hidden="true">${flagFrom(meta.flagCp)}</span><span class="v12-lang-name">${meta.name}</span>`;
+                if (langMenu) {
+                    Array.from(langMenu.querySelectorAll('.v12-lang-item')).forEach((btn) => {
+                        setClass(btn, 'is-active', btn.getAttribute('data-lang') === val);
+                    });
+                }
+            };
+
+            const positionLangMenu = () => {
+                if (!langTrigger || !langMenu) return;
+                const rect = langTrigger.getBoundingClientRect();
+                const anchorRect = (langControl && langControl.getBoundingClientRect) ? langControl.getBoundingClientRect() : rect;
+                const gap = 4;
+                const pad = 8;
+                const vv = window.visualViewport;
+                const vw = vv ? vv.width : window.innerWidth;
+                const vh = vv ? vv.height : window.innerHeight;
+                const vLeft = vv ? vv.offsetLeft : 0;
+                const vTop = vv ? vv.offsetTop : 0;
+
+                const menuRect = langMenu.getBoundingClientRect();
+                const menuW = menuRect.width || langMenu.offsetWidth;
+                const menuH = menuRect.height || langMenu.offsetHeight;
+
+                // horizontal: align to trigger right edge (dropdown expands to the left)
+                let left = anchorRect.right - menuW;
+                if (left < pad) left = rect.left;
+                left = Math.max(pad, Math.min(left, vw - menuW - pad));
+
+                // vertical: default below, flip above if overflow
+                let top = rect.bottom + gap;
+                const overflowBottom = top + menuH > vh - pad;
+                const canFlipAbove = rect.top - gap - menuH >= pad;
+                if (overflowBottom && canFlipAbove) top = rect.top - gap - menuH;
+                top = Math.max(pad, Math.min(top, vh - menuH - pad));
+
+                langMenu.style.left = (left + vLeft) + 'px';
+                langMenu.style.top = (top + vTop) + 'px';
+            };
+
+            const setLangMenuOpen = (open) => {
+                if (!langTrigger || !langMenu) return;
+                setClass(langMenu, 'is-open', open);
+                langTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (open) positionLangMenu();
+            };
+
+            if (langSwitcher && langTrigger && langMenu) {
+                if (langMenu.parentElement !== document.body) document.body.appendChild(langMenu);
+                // init
+                let initialLang = langSwitcher.value || 'cn';
+                try {
+                    const saved = localStorage.getItem('v12_lang');
+                    if (saved) initialLang = saved;
+                } catch (e) {}
+                langSwitcher.value = initialLang;
+                applyLanguage(initialLang);
+                setLangUI(initialLang);
+
+                scheduleFitHeroSubtitle();
+
+                // build menu
+                langMenu.innerHTML = '';
+                Array.from(langSwitcher.options).forEach((o) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'v12-lang-item';
+                    btn.setAttribute('role', 'menuitem');
+                    btn.setAttribute('data-lang', o.value);
+                    const meta = getLangMeta(o.value);
+                    btn.innerHTML = `<span class="v12-lang-left"><span class="v12-lang-flag" aria-hidden="true">${flagFrom(meta.flagCp)}</span><span class="v12-lang-name">${meta.name}</span></span>`;
+                    on(btn, 'click', () => {
+                        langSwitcher.value = o.value;
+                        applyLanguage(o.value);
+                        setLangUI(o.value);
+                        try { localStorage.setItem('v12_lang', String(o.value || 'cn')); } catch (e) {}
+                        setLangMenuOpen(false);
+                    });
+                    langMenu.appendChild(btn);
+                });
+                setLangUI(langSwitcher.value || 'cn');
+
+                const langSwitchWrap = qs('.v12-lang-switch');
+                const openLangMenu = (e) => {
+                    if (e && e.target && langMenu && langMenu.contains(e.target)) return;
+                    const open = langTrigger.getAttribute('aria-expanded') === 'true';
+                    setLangMenuOpen(!open);
+                };
+
+                on(langControl, 'click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openLangMenu(e);
+                });
+                on(langSwitchWrap, 'click', (e) => {
+                    if (langTrigger && langTrigger.contains(e.target)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openLangMenu(e);
+                });
+
+                on(langTrigger, 'click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const open = langTrigger.getAttribute('aria-expanded') === 'true';
+                    setLangMenuOpen(!open);
+                });
+
+                on(document, 'click', (e) => {
+                    const t = e.target;
+                    if (langMenu.contains(t) || langTrigger.contains(t) || (langControl && langControl.contains(t))) return;
+                    setLangMenuOpen(false);
+                });
+
+                on(window, 'scroll', () => {
+                    if (langMenu.classList.contains('is-open')) positionLangMenu();
+                }, { passive: true });
+
+                on(window, 'resize', scheduleFitHeroSubtitle, { passive: true });
+                on(window, 'resize', () => {
+                    if (langTrigger.getAttribute('aria-expanded') === 'true') positionLangMenu();
+                });
+                if (window.visualViewport) {
+                    on(window.visualViewport, 'resize', () => {
+                        if (langTrigger.getAttribute('aria-expanded') === 'true') positionLangMenu();
+                    });
+                }
+
+                // keep in sync if changed programmatically
+                on(langSwitcher, 'change', (e) => {
+                    const v = e.target.value || 'cn';
+                    applyLanguage(v);
+                    setLangUI(v);
+                    try { localStorage.setItem('v12_lang', String(v || 'cn')); } catch (e) {}
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>

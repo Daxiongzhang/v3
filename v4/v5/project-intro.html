@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W/A - 项目介绍 / Redesign Gold</title>
+    <!-- Interaction Layer: runtime scripts / dependency bootstrapping -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Interaction Layer: viewport scale calculation (no visual token changes) -->
+    <script>
+        (function () {
+            try {
+                var DESIGN_WIDTH = 1440;
+                var SCALE_FACTOR = 0.9;
+                var SCALE_SYNC_DELAYS = [300, 800];
+
+                function getViewportWidth() {
+                    return (window.visualViewport && window.visualViewport.width)
+                        ? window.visualViewport.width
+                        : document.documentElement.clientWidth;
+                }
+
+                function getScaleValue() {
+                    var rawScale = Math.min(1, getViewportWidth() / DESIGN_WIDTH) * SCALE_FACTOR;
+                    return Math.round(rawScale * 10000) / 10000;
+                }
+
+                function applyScale(scale) {
+                    var wrapper = document.getElementById('v12-pi-wrapper');
+                    if (!wrapper) return;
+
+                    wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
+                    wrapper.style.width = DESIGN_WIDTH + 'px';
+                    wrapper.style.height = 'auto';
+
+                    var scaledHeight = Math.ceil(wrapper.scrollHeight * scale) + 'px';
+                    document.body.style.height = scaledHeight;
+                    document.body.style.minHeight = scaledHeight;
+                }
+
+                function runScaleSync(scale) {
+                    applyScale(scale);
+                    SCALE_SYNC_DELAYS.forEach(function (delay) {
+                        setTimeout(function () { applyScale(scale); }, delay);
+                    });
+                }
+
+                function initScale() {
+                    var scale = getScaleValue();
+                    document.documentElement.style.setProperty('--pi-scale', String(scale));
+                    runScaleSync(scale);
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initScale);
+                } else {
+                    initScale();
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700;900&family=Noto+Sans+SC:wght@100;400;700;900&display=swap" rel="stylesheet">
+    <!-- Visual Layer: design tokens (Tailwind runtime config) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#00FFD1',
+                        v12: '#BBFF00',
+                        terminal: '#020202',
+                        accent: 'rgba(0, 255, 209, 0.15)'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    }
+                }
+            }
+        };
+    </script>
+    <!-- Visual Layer: CSS presentation rules -->
+    <style>
+        /* Visual Layer / Base */
+        :root { --pi-scale: 1; }
+        html { height: 100%; scroll-behavior: smooth; background: #000; }
+        body {
+            scroll-behavior: smooth;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        .ambient-glow {
+            position: fixed; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 255, 209, 0.04) 0%, rgba(0,0,0,0) 50%);
+            z-index: 1; pointer-events: none;
+        }
+        .noise-overlay {
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.05; pointer-events: none; z-index: 2;
+        }
+        .cyber-grid {
+            position: fixed; inset: 0;
+            background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+            background-size: 44px 44px; opacity: 0.5; pointer-events: none; z-index: 3;
+        }
+        #v12-pi-wrapper {
+            width: 1440px; min-height: 100vh; position: absolute;
+            left: 50%; top: 0;
+            transform-origin: top center;
+            background: #000; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Visual Layer / Card system */
+        .glass-panel {
+            background:
+                radial-gradient(circle at 110% -20%, rgba(0, 255, 209, 0.08) 0%, rgba(0,0,0,0) 44%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.068) 0%, rgba(255, 255, 255, 0.024) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 24px;
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .stat-card {
+            position: relative; padding: 40px; overflow: hidden;
+            background: linear-gradient(180deg, rgba(20,20,20,0.8) 0%, rgba(0,0,0,0.95) 100%);
+            border: 1px solid rgba(0, 255, 178, 0.15);
+        }
+        .stat-value {
+            font-size: 84px; font-weight: 900; font-style: italic; line-height: 1;
+            background: linear-gradient(to bottom, #fff, #00FFD1);
+            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 255, 209, 0.3);
+        }
+        .stat-arc {
+            position: absolute; right: -20px; bottom: -20px; width: 160px; height: 160px;
+            opacity: 0.1; transform: rotate(-45deg);
+        }
+
+        .feature-row {
+            display: grid; grid-template-columns: 64px 140px 220px 1fr; align-items: center;
+            padding: 0 32px; gap: 32px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        .feature-row > * { padding: 24px 0; white-space: nowrap; }
+        .feature-row > *:last-child { white-space: normal; }
+        .feature-row:hover { background: rgba(255, 187, 0, 0.03); border-left: 4px solid #FFBB00; padding-left: 28px; }
+
+        /* Visual Layer / Table */
+        .pi-table-wrap {
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+        }
+        .pi-table-wrap::-webkit-scrollbar { height: 8px; }
+        .pi-table-wrap::-webkit-scrollbar-track { background: transparent; }
+        .pi-table-wrap::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 999px; }
+        .pi-table-wrap:hover::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); }
+
+        .data-table-impact { width: 100%; min-width: 560px; border-collapse: collapse; }
+        .data-table-impact th,
+        .data-table-impact td {
+            padding: 12px 14px;
+            padding-left: 26px;
+            padding-right: 26px;
+            vertical-align: middle;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+        .data-table-impact th {
+            background-color: rgb(14, 16, 16);
+            color: #00FFD1;
+            font-family: "Space Grotesk", monospace;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-align: left;
+            white-space: nowrap;
+            padding-top: 18px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .data-table-impact td {
+            color: rgba(255, 255, 255, 0.66);
+            padding-top: 16px;
+            padding-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+        .data-table-impact tbody tr { position: relative; }
+        .data-table-impact tbody tr::after {
+            content: '';
+            position: absolute;
+            left: 26px;
+            right: 26px;
+            bottom: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+        }
+        .data-table-impact tbody tr:last-child::after { display: none; }
+        .data-table-impact tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+        /* Visual Layer / Highlight variants */
+        .winner-col {
+            background: rgba(0, 255, 209, 0.08) !important;
+            color: #00FFD1 !important;
+            font-weight: 700;
+            border-left: 1px solid rgba(0, 255, 209, 0.2);
+            border-right: 1px solid rgba(0, 255, 209, 0.2);
+        }
+
+        .tier-system { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .tier-box {
+            padding: 32px 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.17);
+            transition: all 0.3s ease; font-size: 16px; background: linear-gradient(180deg, rgba(255,255,255,0.056) 0%, rgba(255,255,255,0.02) 100%);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .tier-box:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2); }
+        .tier-box.active { border-color: #00FFD1; box-shadow: 0 0 30px rgba(0, 255, 209, 0.15); background: linear-gradient(180deg, rgba(0,255,209,0.1) 0%, rgba(0,255,209,0.02) 100%); }
+
+        .intro-pull-quote {
+            position: relative; padding: 48px; margin: 40px 0; border-left: 6px solid #00FFD1;
+            background: linear-gradient(90deg, rgba(0,255,209,0.05) 0%, transparent 100%);
+            font-size: 20px; line-height: 1.8; color: rgba(255,255,255,0.9); font-weight: 500;
+        }
+        .intro-pull-quote::after { content: '"'; position: absolute; right: 40px; top: 20px; font-size: 120px; opacity: 0.05; font-family: serif; }
+
+        .highlight-panel {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 32px;
+        }
+        .bullet-item {
+            display: flex; gap: 16px; padding: 24px; border-radius: 16px; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.022) 100%);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .bullet-marker { width: 8px; height: 8px; border-radius: 50%; background: #00FFD1; margin-top: 8px; box-shadow: 0 0 10px #00FFD1; flex-shrink: 0; }
+
+        .section-header { margin-bottom: 60px; }
+        .section-num { font-family: "Space Grotesk"; font-size: 14px; color: #00FFD1; letter-spacing: 0.5em; margin-bottom: 12px; display: block; }
+        .section-title { font-size: 48px; font-weight: 900; font-style: italic; letter-spacing: -0.02em; }
+
+        /* Visual Layer / Reusable section heading row */
+        .section-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+        .section-row-title {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 900;
+            font-style: italic;
+        }
+        .section-row-meta {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        /* Visual Layer / Reusable panel spacing */
+        .panel-p6 { padding: 1.5rem; }
+        .panel-p8 { padding: 2rem; }
+        .panel-p10 { padding: 2.5rem; }
+
+        /* Visual Layer / Reusable flow card */
+        .flow-step-card {
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Visual Layer / Reusable text tokens */
+        .body-text-muted {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .body-text-soft {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Visual Layer / Reusable title tokens */
+        .card-title-base {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .card-title-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+        .card-title-xl {
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+            font-weight: 900;
+        }
+        .card-title-xl-tight {
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        /* Visual Layer / Reusable mono label tokens */
+        .mono-label-status {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+        .mono-label-muted {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .mono-label-muted-track {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.1em;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .mono-label-soft-track {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        /* Visual Layer / Partner list */
+        .partner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+        }
+        .partner-card {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-height: 60px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background:
+                radial-gradient(circle at 110% -20%, rgba(0, 255, 209, 0.11) 0%, rgba(0,0,0,0) 45%),
+                linear-gradient(135deg, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.022) 100%);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .partner-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0) 100%);
+        }
+        .partner-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 255, 209, 0.42);
+            box-shadow: 0 12px 28px rgba(0, 255, 209, 0.1);
+        }
+        .partner-logo-img {
+            width: 35px;
+            height: 35px;
+            padding: 0;
+            border-radius: 0;
+            display: block;
+            background: transparent;
+            border: none;
+            object-fit: contain;
+            object-position: center;
+            flex-shrink: 0;
+            filter: none;
+            opacity: 1;
+            transition: filter 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+        }
+        .partner-card:hover .partner-logo-img {
+            filter: brightness(1.06) saturate(1.06);
+            opacity: 1;
+            transform: scale(1.04);
+        }
+        .partner-name {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: 0.01em;
+            text-align: center;
+        }
+
+        .mono { font-family: "Space Grotesk", monospace; }
+    </style>
+</head>
+<body>
+    <!-- Structure Layer: global decor containers -->
+    <div class="ambient-glow"></div>
+    <div class="noise-overlay"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Structure Layer: page root -->
+    <div id="v12-pi-wrapper" class="font-sans">
+        
+        <!-- Structure Layer: header -->
+        <header class="px-20 pt-20 pb-12 flex justify-between items-end border-b border-white/5">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <a href="v12-index.html" class="p-2 border border-white/10 hover:border-brand transition-colors">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-brand"></i>
+                    </a>
+                    <span class="mono text-brand text-xs tracking-[6px] uppercase">Whale Ant Vision / Document V12</span>
+                </div>
+                <h1 class="text-7xl font-black italic tracking-tighter uppercase">项目介绍 <span class="text-white/20">/ Vision</span></h1>
+            </div>
+            <div class="flex gap-4 mb-2">
+                <div class="px-6 py-4 glass-panel flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
+                    <span class="mono-label-status">Network Active</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Structure Layer: main content wrapper -->
+        <div class="flex px-20 py-20">
+            
+            <!-- Data Layer: static content sections (SECTION_01 ~ SECTION_04) -->
+            <main class="w-full">
+                
+                <section id="part01" class="mb-40">
+                    <div class="section-header">
+                        <span class="section-num">SECTION_01</span>
+                        <h2 class="section-title">定位与框架 / POSITIONING</h2>
+                    </div>
+
+                    <div class="intro-pull-quote">
+                        作为 Web3.0 的数字入口，项目通过深度定制 Telegram 内核构建超级终端，以 Smart Tunneling 代理技术实现无 VPN 全球网络访问，解决地域封锁痛点；将用户入门门槛从"高技术操作"降至"一键使用"。
+                    </div>
+
+                    <div class="highlight-panel">
+                        <div class="bullet-item">
+                            <div class="bullet-marker"></div>
+                            <div>
+                                <h4 class="mono-label-muted">价值转化引擎</h4>
+                                <p class="text-sm leading-relaxed text-white/70">以卷轴粘性留存用户，AI 量化引擎与广告矩阵转化行为价值为现金流，形成注意力投入-收益产出-通缩增值闭环。</p>
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <div class="bullet-marker"></div>
+                            <div>
+                                <h4 class="mono-label-muted">生态协同载体</h4>
+                                <p class="text-sm leading-relaxed text-white/70">WANT 为唯一价值载体，串联流量、娱乐、资管、社交、支付五大场景；XANT 作启动期算力通行证。</p>
+                            </div>
+                        </div>
+                        <div class="bullet-item">
+                            <div class="bullet-marker"></div>
+                            <div>
+                                <h4 class="mono-label-muted">可持续治理</h4>
+                                <p class="text-sm leading-relaxed text-white/70">分布式 DAO 社区投票定核心参数，RWA 币股同权赋予 WANT 分红投票权，对接传统估值。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-32">
+                        <div class="section-row">
+                            <h3 class="section-row-title">网体收益 / Membership Tiers</h3>
+                            <span class="mono text-xs text-white/30 uppercase tracking-[4px]">Dynamic Scaling Rewards</span>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <div class="tier-box active flex items-center justify-between p-10">
+                                <div>
+                                    <span class="mono text-brand text-xs font-bold tracking-[4px] block mb-2">TOP TIER: V5 LEADER</span>
+                                    <div class="text-5xl font-black mb-1">领袖</div>
+                                    <p class="text-base text-white/70">直推 ≥ 30人</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-brand text-4xl font-black mb-2">20% FEE</div>
+                                    <div class="mono text-brand text-sm">解锁 11-20 代: 0.2%</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="tier-box flex items-center justify-between">
+                                    <div>
+                                        <span class="mono-label-muted-track">V1 NOVICE</span>
+                                        <div class="text-3xl font-black">新手</div>
+                                        <p class="text-xs text-white/50 mt-1">直推 &lt; 3人</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-brand text-2xl font-black">50% FEE</div>
+                                        <div class="mono text-brand/80 text-[10px] mt-1">1 代: 5%</div>
+                                    </div>
+                                </div>
+
+                                <div class="tier-box flex items-center justify-between">
+                                    <div>
+                                        <span class="mono-label-muted-track">V2 STANDARD</span>
+                                        <div class="text-3xl font-black">达标</div>
+                                        <p class="text-xs text-white/50 mt-1">直推 ≥ 3人</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-brand text-2xl font-black">35% FEE</div>
+                                        <div class="mono text-brand/80 text-[10px] mt-1">2 代: 2%</div>
+                                    </div>
+                                </div>
+
+                                <div class="tier-box flex items-center justify-between">
+                                    <div>
+                                        <span class="mono-label-muted-track">V3 PRO</span>
+                                        <div class="text-3xl font-black">优秀</div>
+                                        <p class="text-xs text-white/50 mt-1">直推 ≥ 10人</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-brand text-2xl font-black">30% FEE</div>
+                                        <div class="mono text-brand/80 text-[10px] mt-1">3-5 代: 1%</div>
+                                    </div>
+                                </div>
+
+                                <div class="tier-box flex items-center justify-between">
+                                    <div>
+                                        <span class="mono-label-muted-track">V4 ELITE</span>
+                                        <div class="text-3xl font-black">卓越</div>
+                                        <p class="text-xs text-white/50 mt-1">直推 ≥ 20人</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-brand text-2xl font-black">25% FEE</div>
+                                        <div class="mono text-brand/80 text-[10px] mt-1">6-10 代: 0.5%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="part02" class="mb-40">
+                    <div class="section-header">
+                        <span class="section-num">SECTION_02</span>
+                        <h2 class="section-title">解决方案 / SOLUTIONS</h2>
+                    </div>
+
+                    <div class="glass-panel overflow-hidden mb-24">
+                        <div class="feature-row bg-white/5 font-bold text-[10px] tracking-widest text-white/30 uppercase">
+                            <div>Icon</div>
+                            <div>Category</div>
+                            <div>Feature Name</div>
+                            <div>Value Proposition</div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="text-brand"><i data-lucide="network" class="w-8 h-8"></i></div>
+                            <div class="mono text-xs text-white/40">NETWORK</div>
+                            <div class="font-bold text-white">Smart Tunneling</div>
+                            <div class="body-text-muted">内置云端 MTProto 代理池，用户无需下载 VPN，点击即可连接</div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="text-brand"><i data-lucide="fingerprint" class="w-8 h-8"></i></div>
+                            <div class="mono text-xs text-white/40">AUTH</div>
+                            <div class="font-bold text-white">Session Hosting</div>
+                            <div class="body-text-muted">独创会话托管技术，彻底突破 +86 手机号注册与封禁限制</div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="text-brand"><i data-lucide="gamepad-2" class="w-8 h-8"></i></div>
+                            <div class="mono text-xs text-white/40">ECOSYSTEM</div>
+                            <div class="font-bold text-white">Mini App Support</div>
+                            <div class="body-text-muted">原生适配 Telegram Mini App 生态，一站式集成游戏与 Web3 应用</div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="text-brand"><i data-lucide="wallet" class="w-8 h-8"></i></div>
+                            <div class="mono text-xs text-white/40">WEB3</div>
+                            <div class="font-bold text-white">Embedded Wallet</div>
+                            <div class="body-text-muted">内嵌多链钱包，支持 ETH、SOL、TON 等主流公链无感交互</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-8">
+                        <div class="glass-panel stat-card">
+                            <span class="mono-label-soft-track">Operational Runtime</span>
+                            <div class="stat-value">24</div>
+                            <div class="mono text-brand text-xs font-bold mt-2 uppercase">MONTHS · STABLE</div>
+                            <svg class="stat-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#00FFB2" stroke-width="2" stroke-dasharray="283" stroke-dashoffset="40"></circle></svg>
+                        </div>
+                        <div class="glass-panel stat-card">
+                            <span class="mono-label-soft-track">Average Monthly ROI</span>
+                            <div class="stat-value">36%</div>
+                            <div class="mono text-brand text-xs font-bold mt-2 uppercase">QUANT PERFORMANCE</div>
+                            <svg class="stat-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#00FFB2" stroke-width="2" stroke-dasharray="283" stroke-dashoffset="100"></circle></svg>
+                        </div>
+                        <div class="glass-panel stat-card">
+                            <span class="mono-label-soft-track">Max Drawdown</span>
+                            <div class="stat-value">&lt;3%</div>
+                            <div class="mono text-brand text-xs font-bold mt-2 uppercase">RISK CONTROL</div>
+                            <svg class="stat-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#00FFB2" stroke-width="2" stroke-dasharray="283" stroke-dashoffset="240"></circle></svg>
+                        </div>
+                    </div>
+
+                    <div class="mt-24 glass-panel pi-table-wrap">
+                        <table class="data-table-impact">
+                            <thead>
+                                <tr>
+                                    <th>Comparison Matrix</th>
+                                    <th>Manual Mode / 传统模式</th>
+                                    <th class="winner-col">AI Quant Engine / 智能引擎</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="mono text-white/40 text-xs">DECISION LOGIC</td>
+                                    <td class="text-white/60">直觉判断、新闻信息、受情绪干扰</td>
+                                    <td class="winner-col">大数据 + Transformer 金融大模型构建</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-white/40 text-xs">EXECUTION SPEED</td>
+                                    <td class="text-white/60">秒级响应，受限于人工操作效率</td>
+                                    <td class="winner-col">毫秒至微秒级极速自动执行</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono text-white/40 text-xs">RISK PROFILE</td>
+                                    <td class="text-white/60">贪婪或恐惧导致偏差，回撤不确定</td>
+                                    <td class="winner-col">剥离人类情绪，严格执行风控阈值</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">静态收益：流量引擎规格表</h3>
+                            <span class="mono section-row-meta">T10-T70 Engine Spec</span>
+                        </div>
+                        <div class="glass-panel pi-table-wrap mb-8">
+                            <table class="data-table-impact">
+                                <thead>
+                                    <tr>
+                                        <th>引擎代号</th>
+                                        <th>门槛(WANT)</th>
+                                        <th>周期(天)</th>
+                                        <th>总产(WANT)</th>
+                                        <th>净收益</th>
+                                        <th>净收益率</th>
+                                        <th>月化收益(约)</th>
+                                        <th>容量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>T10</td><td>100</td><td>30</td><td>130</td><td>30</td><td>30%</td><td>30%</td><td>3</td></tr>
+                                    <tr><td>T20</td><td>500</td><td>35</td><td>700</td><td>200</td><td>40%</td><td>34%</td><td>3</td></tr>
+                                    <tr><td>T30</td><td>1,000</td><td>40</td><td>1,500</td><td>500</td><td>50%</td><td>37.5%</td><td>2</td></tr>
+                                    <tr><td>T40</td><td>5,000</td><td>50</td><td>8,000</td><td>3,000</td><td>60%</td><td>36%</td><td>2</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="glass-panel pi-table-wrap">
+                            <table class="data-table-impact">
+                                <thead>
+                                    <tr>
+                                        <th>引擎代号</th>
+                                        <th>门槛(WANT)</th>
+                                        <th>周期(天)</th>
+                                        <th>总产(WANT)</th>
+                                        <th>净收益</th>
+                                        <th>净收益率</th>
+                                        <th>月化收益(约)</th>
+                                        <th>容量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>T50</td><td>10,000</td><td>60</td><td>17,000</td><td>7,000</td><td>70%</td><td>35%</td><td>1</td></tr>
+                                    <tr><td>T60</td><td>50,000</td><td>75</td><td>90,000</td><td>40,000</td><td>80%</td><td>32%</td><td>1</td></tr>
+                                    <tr><td>T70</td><td>100,000</td><td>90</td><td>200,000</td><td>100,000</td><td>100%</td><td>33.3%</td><td>1</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">生态开发技术平台架构概览</h3>
+                            <span class="mono section-row-meta">Platform Architecture</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-6 mb-6">
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base">微服务</h4><p class="body-text-muted">Apache Dubbo / Spring Cloud</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base">金融应用</h4><p class="body-text-muted">MySQL / RocketMQ</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base">大数据/AI应用</h4><p class="body-text-muted">Apache Flink / TensorFlow</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base">创新应用</h4><p class="body-text-muted">Renovation / IoT</p></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="glass-panel panel-p6 body-text-soft">统一集群管理、统一资源调度、统一监控告警、统一应用交付</div>
+                            <div class="glass-panel panel-p6 body-text-soft">应用再用集成幅度，为特定应用预留扩展能力</div>
+                            <div class="glass-panel panel-p6 body-text-soft">公有算力 / 边缘算力 / 专有算力协同，支撑用户 FaaS</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="part03" class="mb-40">
+                    <div class="section-header">
+                        <span class="section-num">SECTION_03</span>
+                        <h2 class="section-title">商业模式 / BUSINESS</h2>
+                    </div>
+
+                    <div class="intro-pull-quote">
+                        W/A 流量引擎 2.0：拒绝"空气盘"，锚定商业价值产币。通过 POW (Proof of Watch) 证明，将 YouTube Shorts 广告矩阵收入回购 WANT 代币，构建真实资金注入的可持续循环。
+                    </div>
+
+                    <div class="mt-16 grid grid-cols-6 gap-4">
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">01</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">POW 证明</span>
+                            <p class="text-[10px] text-white/40">拒绝空气盘</p>
+                        </div>
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">02</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">观看视频</span>
+                            <p class="text-[10px] text-white/40">商业价值任务</p>
+                        </div>
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">03</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">广告变现</span>
+                            <p class="text-[10px] text-white/40">YouTube 矩阵</p>
+                        </div>
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">04</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">回购 WANT</span>
+                            <p class="text-[10px] text-white/40">资金真实注入</p>
+                        </div>
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">05</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">发放激励</span>
+                            <p class="text-[10px] text-white/40">结算奖励</p>
+                        </div>
+                        <div class="glass-panel flow-step-card group transition-all hover:border-brand">
+                            <span class="mono text-brand text-4xl font-black italic mb-4">06</span>
+                            <span class="font-bold text-xs uppercase tracking-widest mb-2">闭环循环</span>
+                            <p class="text-[10px] text-white/40">全链路持续</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">星级达人 / Elite Recognition</h3>
+                            <span class="mono section-row-meta">Infinite Dividend Pool</span>
+                        </div>
+                        <div class="glass-panel pi-table-wrap">
+                            <table class="data-table-impact">
+                                <thead>
+                                    <tr>
+                                        <th>达人等级</th>
+                                        <th>有效直推</th>
+                                        <th>核心条件(架构考核)</th>
+                                        <th>业绩条件</th>
+                                        <th>赠送引擎</th>
+                                        <th>级差</th>
+                                        <th class="winner-col">分红(同级平分)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-black text-white italic">一星</td>
+                                        <td class="text-white/60">5人</td>
+                                        <td class="text-white/60">无(入门)</td>
+                                        <td class="text-white/60">团队总5万</td>
+                                        <td class="text-white/60">-</td>
+                                        <td class="text-white/60">3%</td>
+                                        <td class="winner-col">30%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-black text-white italic">二星</td>
+                                        <td class="text-white/60">10人</td>
+                                        <td class="text-white/60">培养2个一星</td>
+                                        <td class="text-white/60">小区≥10万</td>
+                                        <td class="text-white/60">T10</td>
+                                        <td class="text-white/60">6%</td>
+                                        <td class="winner-col">25%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-black text-white italic">三星</td>
+                                        <td class="text-white/60">15人</td>
+                                        <td class="text-white/60">培养2个二星</td>
+                                        <td class="text-white/60">小区≥30万</td>
+                                        <td class="text-white/60">T20</td>
+                                        <td class="text-white/60">9%</td>
+                                        <td class="winner-col">20%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-black text-white italic">四星</td>
+                                        <td class="text-white/60">20人</td>
+                                        <td class="text-white/60">培养3个三星</td>
+                                        <td class="text-white/60">小区≥100万</td>
+                                        <td class="text-white/60">T30</td>
+                                        <td class="text-white/60">12%</td>
+                                        <td class="winner-col">15%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-black text-white italic">五星</td>
+                                        <td class="text-white/60">25人</td>
+                                        <td class="text-white/60">培养3个四星</td>
+                                        <td class="text-white/60">小区≥500万</td>
+                                        <td class="text-white/60">T40</td>
+                                        <td class="text-white/60">14%</td>
+                                        <td class="winner-col">7%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-black text-brand italic text-2xl">六星</td>
+                                        <td class="winner-col">30人</td>
+                                        <td class="winner-col">培养3个五星</td>
+                                        <td class="winner-col">小区≥3000万</td>
+                                        <td class="winner-col">T50</td>
+                                        <td class="winner-col">15%</td>
+                                        <td class="winner-col">3%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-8 grid grid-cols-2 gap-6 text-sm">
+                            <div class="glass-panel panel-p6">DAO 治理：参与平台重大决策投票 · 生态基金：共享全球生态节点建设收益</div>
+                            <div class="glass-panel panel-p6">IPO 期权：享优先认购权 · 全球分红：平分平台生态收益分配</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="part04" class="mb-6">
+                    <div class="section-header">
+                        <span class="section-num">SECTION_04</span>
+                        <h2 class="section-title">通证与生态 / ECOSYSTEM</h2>
+                    </div>
+
+                    <div class="intro-pull-quote">
+                        WANT：一币通万物，贯穿流量、资管、娱乐、社交、支付等生态，形成共建共享价值网络。
+                    </div>
+
+                    <div class="highlight-panel">
+                        <div class="bullet-item"><div class="bullet-marker"></div><div><h4 class="mono-label-muted">流量生态</h4><p class="body-text-soft leading-relaxed">观看驱动、营销引擎、广告分发，价值转化为数字资产。</p></div></div>
+                        <div class="bullet-item"><div class="bullet-marker"></div><div><h4 class="mono-label-muted">资管生态</h4><p class="body-text-soft leading-relaxed">AI 量化托管，收益目标年化 30%-500%，智能风控护航。</p></div></div>
+                        <div class="bullet-item"><div class="bullet-marker"></div><div><h4 class="mono-label-muted">娱乐生态</h4><p class="body-text-soft leading-relaxed">Play-to-Earn 模式结合 Hamster/Citizen 等社区游戏生态。</p></div></div>
+                        <div class="bullet-item"><div class="bullet-marker"></div><div><h4 class="mono-label-muted">社交生态</h4><p class="body-text-soft leading-relaxed">私域社群精细化运营 + DAO 去中心化治理 + 红包裂变获客。</p></div></div>
+                        <div class="bullet-item"><div class="bullet-marker"></div><div><h4 class="mono-label-muted">支付与交易</h4><p class="body-text-soft leading-relaxed">W/A 联合 Visa 全球覆盖，RWA 资产映射支持消费与市值管理。</p></div></div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">核心机制：场景 + 风控 + 销毁</h3>
+                            <span class="mono section-row-meta">Mechanism</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-8 mb-8">
+                            <div class="glass-panel panel-p10 border-l-4 border-white/20"><span class="mono text-white/30 text-[10px] tracking-widest block mb-4">场景 01-02</span><div class="text-2xl font-bold mb-4 italic">社交 / 支付</div><p class="text-sm text-white/50 leading-relaxed">TG 高级会员、社群管理、W/A 联名 Visa 卡跨境支付。</p></div>
+                            <div class="glass-panel panel-p10 border-l-4 border-brand/40"><span class="mono text-brand text-[10px] tracking-widest block mb-4">场景 03-04</span><div class="text-2xl font-bold mb-4 italic">燃料 / 量化</div><p class="text-sm text-white/50 leading-relaxed">算力引擎工作燃料、AI 量化交易手续费治理。</p></div>
+                            <div class="glass-panel panel-p10 border-l-4 border-brand"><span class="mono text-brand text-[10px] tracking-widest block mb-4">场景 05-06</span><div class="text-2xl font-bold mb-4 italic">交易 / DeFi</div><p class="text-sm text-white/50 leading-relaxed">DEX 手续费折扣、Launchpad 打新，质押借贷和收益整合。</p></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl-tight">风控机制</h4><p class="body-text-muted leading-relaxed">手续费 25% 进入黑洞销毁；每 72 小时触发动态调节，手续费总量 × 0.1 WANT 自动销毁；同步对冲周期广告收益。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl-tight">销毁机制</h4><p class="body-text-muted leading-relaxed">AI 量化利润与引擎兑换持续回购销毁 WANT，形成长期通缩模型，驱动二级市场价值上行。</p></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">开源协议 & API 赋能开发者友好生态</h3>
+                            <span class="mono section-row-meta">Developer Friendly</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-6">
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base card-title-lg">开源协议</h4><p class="body-text-muted">核心智能合约与前端框架开源，降低重复开发成本，保障透明性与安全性。</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base card-title-lg">标准化 API</h4><p class="body-text-muted">RESTful + WebSocket，覆盖行情、订单、资产、流动性等能力，支持多语言调用。</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base card-title-lg">工具链支持</h4><p class="body-text-muted">提供 SDK、前端组件库与链上索引工具，快速搭建 AMM、杠杆交易等 DApp。</p></div>
+                            <div class="glass-panel panel-p6"><h4 class="card-title-base card-title-lg">社区协作</h4><p class="body-text-muted">开放开发者论坛与提案通道，支持贡献激励，推动生态工具持续迭代。</p></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">高透明 DeFi 全流程体验（开发中）</h3>
+                            <span class="mono section-row-meta">In Development</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">钱包即入口</h4><p class="body-text-muted">仅需连接 MetaMask / Trust Wallet，无需注册，直达 LP 提供、交易、挖矿。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">无审核提现</h4><p class="body-text-muted">智能合约自动执行，提取速度取决于链上确认时间，减少中心化排队风险。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">全流程覆盖</h4><p class="body-text-muted">从资产到账、LP 到挖矿收益领取可在统一界面完成，效率提升约 70%。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">永续运行承诺</h4><p class="body-text-muted">核心协议开源且不可篡改，降低单点故障风险，用户资产不依赖平台冻结。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">资产互转锁定</h4><p class="body-text-muted">代币转移链上留痕，交易过程资产状态实时可查，杜绝“假充值”风险。</p></div>
+                            <div class="glass-panel panel-p8"><h4 class="card-title-xl">透明可追溯</h4><p class="body-text-muted">交易哈希、LP 贡献、挖矿收益全链路可校验，信任成本降至最低。</p></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">发展阶段规划 & RWA 革命</h3>
+                            <span class="mono section-row-meta">Roadmap & Rights</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6 mb-8 text-sm">
+                            <div class="glass-panel panel-p6">启动阶段：用户破 10 万，跑通美金造血闭环</div>
+                            <div class="glass-panel panel-p6">扩张阶段：上线 U 卡与 DEX，用户破千万，制霸东南亚</div>
+                            <div class="glass-panel panel-p6">IPO 阶段：启动美国/阿联酋/新加坡等多国上市计划</div>
+                            <div class="glass-panel panel-p6">全球阶段：全球用户突破 10 亿，打造 Web3.0 超级 App</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-6 text-sm">
+                            <div class="glass-panel panel-p6">币股同权：持有 WANT = 持有上市公司股票</div>
+                            <div class="glass-panel panel-p6">分红权：享受代币持有者对应公司利润分红</div>
+                            <div class="glass-panel panel-p6">投票权：对重大经营决策行使投票权</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-24">
+                        <div class="section-row">
+                            <h3 class="section-row-title">生态开发合作伙伴</h3>
+                            <span class="mono section-row-meta">Partner Matrix</span>
+                        </div>
+                        <div class="p-2">
+                            <div class="partner-grid">
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/telegram.svg" alt="Telegram logo" loading="lazy"><span class="partner-name">Telegram</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/ethereum.png" alt="Ethereum logo" loading="lazy"><span class="partner-name">Ethereum</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/polygon.png" alt="Polygon logo" loading="lazy"><span class="partner-name">Polygon</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/fantom.png" alt="Fantom logo" loading="lazy"><span class="partner-name">Fantom</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/solana.png" alt="Solana logo" loading="lazy"><span class="partner-name">Solana</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/arbitrum.png" alt="Arbitrum logo" loading="lazy"><span class="partner-name">Arbitrum</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/avalanche.png" alt="Avalanche logo" loading="lazy"><span class="partner-name">Avalanche</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/uniswap.png" alt="Uniswap logo" loading="lazy"><span class="partner-name">Uniswap</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/balancer.png" alt="Balancer logo" loading="lazy"><span class="partner-name">Balancer</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/sushiswap.png" alt="SushiSwap logo" loading="lazy"><span class="partner-name">SushiSwap</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/quickswap.ico" alt="QuickSwap logo" loading="lazy"><span class="partner-name">QuickSwap</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/oneinch.png" alt="1inch logo" loading="lazy"><span class="partner-name">1inch</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/pancakeswap.png" alt="PancakeSwap logo" loading="lazy"><span class="partner-name">PancakeSwap</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/curve.png" alt="Curve logo" loading="lazy"><span class="partner-name">Curve</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/kyber.png" alt="Kyber logo" loading="lazy"><span class="partner-name">Kyber</span></div>
+                                <div class="partner-card"><img class="partner-logo-img" src="./assets/partners/nansen.png" alt="Nansen logo" loading="lazy"><span class="partner-name">Nansen</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <footer class="px-10 pt-2 pb-20 border-t border-white/5 text-center">
+            <div class="mono text-[10px] text-white/20 tracking-[10px] uppercase">
+                Whale Ant Web3.0 Infrastructure / Confidential 2024
+            </div>
+        </footer>
+    </div>
+
+    <!-- Interaction Layer: icon hydration -->
+    <script>
+        (function () {
+            try {
+                if (!window.lucide || !window.lucide.createIcons) return;
+                window.lucide.createIcons();
+            } catch (e) {}
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="filename" content="whitepaper.html">
+    <title>W/A WHITEPAPER - V13 PROTOCOL ARCHIVE</title>
+    <script>
+        (function () {
+            try {
+                var designWidth = 1440;
+                var viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                var scale = Math.min(1, viewportWidth / designWidth);
+                scale = Math.round(scale * 10000) / 10000;
+                var s = document.createElement('style');
+                s.textContent = '#wp-container { transform: scale(' + scale + '); visibility: visible !important; }';
+                document.head.appendChild(s);
+                document.documentElement.style.setProperty('--wp-scale', String(scale));
+            } catch (e) {}
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+SC:wght@100;400;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#00FFD1',
+                        accent: '#BBFF00',
+                        deep: '#030303',
+                        surface: '#0A0A0A'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --wp-scale: 1; }
+
+        body {
+            background: #000;
+            color: #fff;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #wp-container {
+            width: 1440px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform-origin: top center;
+            transform: translateX(-50%);
+            background: #000;
+            visibility: hidden;
+        }
+
+        #wp-body {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        #wp-aside {
+            width: 360px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        #wp-aside-label {
+            flex-shrink: 0;
+            padding: 24px 40px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        #wp-toc-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 40px 80px;
+        }
+        #wp-toc-scroll::-webkit-scrollbar { display: none; }
+        #wp-toc-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        #wp-aside-footer {
+            flex-shrink: 0;
+            background: #000;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 16px 40px;
+        }
+
+        #wp-main {
+            flex: 1;
+            overflow-y: auto;
+            min-width: 0;
+        }
+        #wp-main::-webkit-scrollbar { width: 4px; }
+        #wp-main::-webkit-scrollbar-thumb { background: #00FFD1; border-radius: 2px; }
+
+        /* 2026 视觉点阵网格 */
+        .cyber-grid {
+            background-image: radial-gradient(circle at 2px 2px, rgba(0, 255, 209, 0.08) 1px, transparent 0);
+            background-size: 40px 40px;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 玻璃态面板 */
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .neon-border {
+            box-shadow: 0 0 20px rgba(0, 255, 209, 0.1), inset 0 0 10px rgba(0, 255, 209, 0.05);
+        }
+
+        /* 侧边栏滚动隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #00FFD1; border-radius: 2px; }
+
+        /* 章节大号装饰数字 */
+        .section-num {
+            font-size: 10rem;
+            line-height: 1;
+            font-weight: 900;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: absolute;
+            left: -2rem;
+            top: -2rem;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .wp-section-title {
+            font-size: clamp(2.1rem, 3.2vw, 3rem);
+            line-height: 1.06;
+        }
+
+        .wp-section-title br {
+            display: block;
+            content: "";
+            margin-top: 0.22em;
+        }
+
+        .wp-emphasis {
+            color: #00FFD1;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(0, 255, 209, 0.18);
+        }
+
+        .wp-quote {
+            position: relative;
+            border-left: 2px solid rgba(0, 255, 209, 0.55);
+            padding: 12px 16px 12px 22px;
+            color: rgba(0, 255, 209, 0.88);
+            font-style: italic;
+            background:
+                linear-gradient(90deg, rgba(0, 255, 209, 0.08) 0%, rgba(0, 255, 209, 0.00) 55%),
+                rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            box-shadow: 0 0 18px rgba(0, 255, 209, 0.06);
+            text-shadow: 0 0 14px rgba(0, 255, 209, 0.12);
+        }
+
+        .wp-lead {
+            border-left: 2px solid rgba(0, 255, 209, 0.55);
+            padding-left: 22px;
+            color: rgba(255, 255, 255, 0.68);
+            background:
+                linear-gradient(90deg, rgba(0, 255, 209, 0.09) 0%, rgba(0, 255, 209, 0.00) 62%);
+            border-radius: 10px;
+        }
+
+        .wp-ol {
+            color: rgba(255, 255, 255, 0.48);
+        }
+        .wp-ol li::marker {
+            color: #00FFD1;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(0, 255, 209, 0.18);
+            font-size: 1.08em;
+        }
+
+        .wp-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 12px;
+            line-height: 1.2;
+            letter-spacing: 0.01em;
+            transform: translateY(-0.03em);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+                0 0 16px rgba(0, 0, 0, 0.18);
+        }
+        .wp-chip--a { background: rgba(59, 130, 246, 0.18); color: rgba(96, 165, 250, 0.96); border-color: rgba(59, 130, 246, 0.35); box-shadow: 0 0 16px rgba(59, 130, 246, 0.10); }
+        .wp-chip--b { background: rgba(239, 68, 68, 0.18); color: rgba(248, 113, 113, 0.98); border-color: rgba(239, 68, 68, 0.34); box-shadow: 0 0 16px rgba(239, 68, 68, 0.10); }
+        .wp-chip--c { background: rgba(0, 255, 209, 0.14); color: rgba(0, 255, 209, 0.95); border-color: rgba(0, 255, 209, 0.32); box-shadow: 0 0 16px rgba(0, 255, 209, 0.10); }
+        .wp-chip--d { background: rgba(190, 242, 100, 0.18); color: rgba(190, 242, 100, 0.98); border-color: rgba(190, 242, 100, 0.38); box-shadow: 0 0 16px rgba(190, 242, 100, 0.14); }
+        .wp-chip--e { background: rgba(168, 85, 247, 0.18); color: rgba(192, 132, 252, 0.98); border-color: rgba(168, 85, 247, 0.34); box-shadow: 0 0 16px rgba(168, 85, 247, 0.10); }
+        .wp-chip--f { background: rgba(249, 115, 22, 0.18); color: rgba(251, 146, 60, 0.98); border-color: rgba(249, 115, 22, 0.34); box-shadow: 0 0 16px rgba(249, 115, 22, 0.12); }
+
+        .wp-table-wrap {
+            overflow-x: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .wp-table-wrap--wide {
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+        }
+        .wp-table-wrap--wide::-webkit-scrollbar {
+            height: 8px;
+        }
+        .wp-table-wrap--wide::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .wp-table-wrap--wide::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+        }
+        .wp-table-wrap--wide:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.22);
+        }
+        .wp-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 560px;
+        }
+        .wp-table--wide {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+        .wp-table th,
+        .wp-table td {
+            padding: 12px 14px;
+            padding-left: 26px;
+            padding-right: 26px;
+            vertical-align: middle;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+        .wp-table th {
+            background-color: rgb(14, 16, 16);
+            color: #00FFD1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 14px;
+            white-space: nowrap;
+            word-break: keep-all;
+        }
+        .wp-table td {
+            color: rgba(255, 255, 255, 0.48);
+            padding-top: 16px;
+            padding-bottom: 18px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .wp-table--wide th:first-child,
+        .wp-table--wide td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+        .wp-table--wide td:first-child {
+            background: rgb(10, 12, 12);
+        }
+        .wp-table--wide thead th:first-child {
+            z-index: 2;
+        }
+
+        .wp-table--wide td:first-child::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -18px;
+            width: 18px;
+            height: 100%;
+            background: rgb(10, 12, 12);
+            pointer-events: none;
+        }
+        .wp-table--wide thead th:first-child::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -18px;
+            width: 18px;
+            height: 100%;
+            background: rgb(14, 16, 16);
+            pointer-events: none;
+        }
+
+        .wp-table--wide tbody tr:not(:last-child) td:first-child::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            right: -18px;
+            bottom: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .wp-table tr:last-child td {
+            background-image: none;
+        }
+
+        .wp-table tbody tr {
+            position: relative;
+        }
+        .wp-table tbody tr::after {
+            content: '';
+            position: absolute;
+            left: 26px;
+            right: 26px;
+            bottom: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+        }
+        .wp-table tbody tr:last-child::after {
+            display: none;
+        }
+
+        .wp-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.4em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .wp-mark--yes {
+            color: rgba(0, 255, 209, 0.95);
+            text-shadow: 0 0 14px rgba(0, 255, 209, 0.22);
+        }
+        .wp-mark--no {
+            color: rgba(248, 113, 113, 0.96);
+            text-shadow: 0 0 14px rgba(248, 113, 113, 0.18);
+        }
+
+        /* 内容块揭露动效 */
+        .reveal-node {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal-node.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 导航高亮 */
+        .toc-item.is-active {
+            border-color: rgba(0, 255, 209, 0.4) !important;
+            box-shadow: 0 0 20px rgba(0, 255, 209, 0.1), inset 0 0 10px rgba(0, 255, 209, 0.05);
+        }
+        .toc-item.is-active .toc-num { color: #00FFD1; }
+        .toc-item.is-active .toc-title { color: #fff; }
+
+        .scanline {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), linear-gradient(90deg, rgba(0,255,209,0.01), rgba(0,0,0,0), rgba(0,255,209,0.01));
+            background-size: 100% 4px, 20% 100%;
+            pointer-events: none; z-index: 100;
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <div class="scanline"></div>
+    <div class="cyber-grid"></div>
+
+    <div id="wp-container" class="relative z-10">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-20 pointer-events-none">
+            <div class="w-1 h-32 bg-brand/30"></div>
+            <span class="text-[8px] font-mono [writing-mode:vertical-lr]">WHITEPAPER_ARCHIVE_ACTIVE</span>
+        </div>
+
+        <!-- 顶部导航：与 FAQ 页统一 -->
+        <header id="wp-header" class="h-40 px-10 border-b border-white/5 flex flex-col justify-center gap-6 sticky top-0 z-[100] bg-black/90 backdrop-blur-xl">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="v12-index.html" class="p-2 border border-white/10 hover:border-brand transition-colors">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-brand"></i>
+                    </a>
+                    <div class="h-4 w-px bg-white/10 mx-2"></div>
+                    <span data-i18n="wp_breadcrumb" class="text-[10px] font-mono text-white/40 uppercase tracking-[4px]">Protocol Archive / Whitepaper</span>
+                </div>
+                <div class="flex items-center gap-4 text-[10px] font-mono">
+                    <span id="wp-lang-label" class="text-brand">CHINESE (SIMPLIFIED)</span>
+                </div>
+            </div>
+
+            <div class="flex items-end justify-between">
+                <h1 data-i18n="wp_title" data-i18n-mode="html" class="text-5xl font-black italic tracking-tighter uppercase">白皮书 <span class="text-brand">/ SPEC</span></h1>
+                <div class="flex items-center gap-4">
+                    <div class="relative w-96 group">
+                        <input type="text" data-i18n="wp_search_placeholder" placeholder="输入章节关键词检索..."
+                               class="w-full px-4 py-3 bg-white/5 border border-white/10 text-white/60 text-sm focus:outline-none focus:border-brand/50 transition-all">
+                        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-hover:text-brand transition-colors"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div id="wp-body">
+            <!-- 左侧目录 -->
+            <aside id="wp-aside">
+                <!-- 固定不滚动的标签行 -->
+                <div id="wp-aside-label">
+                    <p data-i18n="wp_nav_registry" class="text-[10px] font-mono text-white/30 uppercase tracking-[0.3em]">Navigation Registry</p>
+                </div>
+                <!-- 目录列表独立滚动 -->
+                <div id="wp-toc-scroll">
+                    <div id="wp-toc" class="space-y-3"></div>
+                </div>
+                <!-- 底部装饰 -->
+                <div id="wp-aside-footer">
+                    <div data-i18n="wp_archive_version" class="text-[8px] font-mono text-white/15 uppercase tracking-[0.3em] mb-1">Archive Version</div>
+                    <div class="text-[10px] font-mono text-white/25">V13 · 2026</div>
+                </div>
+            </aside>
+
+            <!-- 主内容区 -->
+            <main id="wp-main" class="px-20 bg-gradient-to-b from-transparent to-brand/5">
+                <!-- pt 与左侧 #wp-aside-label 高度对齐：padding-top: 24px = pt-6 -->
+                <div id="wp-content"></div>
+
+                <!-- Footer：随内容区滚动，在最底部 -->
+                <footer class="px-0 py-16 border-t border-white/10 flex justify-between items-start gap-12 bg-surface/50 mt-8">
+                    <div class="max-w-md">
+                        <div data-i18n="wp_footer_brand" class="text-2xl font-black mb-6">W/A ARCHIVE</div>
+                        <p data-i18n="wp_footer_desc" class="text-white/40 text-sm leading-relaxed mb-8">构建去中心化的数字信任底座，V13 协议通过物理基座与加密算法的深度融合，定义 Web3.0 的最终形态。</p>
+                        <div class="flex gap-6">
+                            <i data-lucide="twitter" class="w-5 h-5 opacity-40 hover:opacity-100 cursor-pointer transition-opacity"></i>
+                            <i data-lucide="github" class="w-5 h-5 opacity-40 hover:opacity-100 cursor-pointer transition-opacity"></i>
+                            <i data-lucide="message-circle" class="w-5 h-5 opacity-40 hover:opacity-100 cursor-pointer transition-opacity"></i>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-16">
+                        <div>
+                            <h5 data-i18n="wp_footer_protocol" class="text-[11px] font-black uppercase text-brand mb-6 tracking-widest">Protocol</h5>
+                            <ul class="space-y-3 text-sm text-white/30">
+                                <li data-i18n="wp_footer_core_layer" class="hover:text-white cursor-pointer transition-colors">Core Layer</li>
+                                <li data-i18n="wp_footer_validators" class="hover:text-white cursor-pointer transition-colors">Validators</li>
+                                <li data-i18n="wp_footer_economics" class="hover:text-white cursor-pointer transition-colors">Economics</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 data-i18n="wp_footer_resources" class="text-[11px] font-black uppercase text-brand mb-6 tracking-widest">Resources</h5>
+                            <ul class="space-y-3 text-sm text-white/30">
+                                <li data-i18n="wp_footer_v9" class="hover:text-white cursor-pointer transition-colors">V9 Archive</li>
+                                <li data-i18n="wp_footer_v11" class="hover:text-white cursor-pointer transition-colors">V11 Legacy</li>
+                                <li data-i18n="wp_footer_api" class="hover:text-white cursor-pointer transition-colors">API Docs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+
+            // ─── 文案层（i18n） ─────────────────────────────────────
+            var I18N = {
+                cn: {
+                    wp_breadcrumb: '协议档案 / 白皮书',
+                    wp_title: '白皮书 <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: '输入章节关键词检索...',
+                    wp_nav_registry: '导航索引',
+                    wp_archive_version: '档案版本',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: '构建去中心化的数字信任底座，V13 协议通过物理基座与加密算法的深度融合，定义 Web3.0 的最终形态。',
+                    wp_footer_protocol: '协议',
+                    wp_footer_core_layer: '核心层',
+                    wp_footer_validators: '验证者',
+                    wp_footer_economics: '经济模型',
+                    wp_footer_resources: '资源',
+                    wp_footer_v9: 'V9 档案',
+                    wp_footer_v11: 'V11 归档',
+                    wp_footer_api: 'API 文档'
+                },
+                en: {
+                    wp_breadcrumb: 'Protocol Archive / Whitepaper',
+                    wp_title: 'Whitepaper <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: 'Search chapter keywords...',
+                    wp_nav_registry: 'Navigation Registry',
+                    wp_archive_version: 'Archive Version',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: 'Building a decentralized foundation of digital trust. The V13 protocol fuses physical infrastructure with cryptography to define the end-form of Web3.0.',
+                    wp_footer_protocol: 'Protocol',
+                    wp_footer_core_layer: 'Core Layer',
+                    wp_footer_validators: 'Validators',
+                    wp_footer_economics: 'Economics',
+                    wp_footer_resources: 'Resources',
+                    wp_footer_v9: 'V9 Archive',
+                    wp_footer_v11: 'V11 Legacy',
+                    wp_footer_api: 'API Docs'
+                },
+                id: {
+                    wp_breadcrumb: 'Arsip Protokol / Whitepaper',
+                    wp_title: 'Whitepaper <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: 'Cari kata kunci bab...',
+                    wp_nav_registry: 'Registri Navigasi',
+                    wp_archive_version: 'Versi Arsip',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: 'Membangun fondasi kepercayaan digital yang terdesentralisasi. Protokol V13 memadukan infrastruktur fisik dan kriptografi untuk mendefinisikan bentuk akhir Web3.0.',
+                    wp_footer_protocol: 'Protokol',
+                    wp_footer_core_layer: 'Lapisan Inti',
+                    wp_footer_validators: 'Validator',
+                    wp_footer_economics: 'Ekonomi',
+                    wp_footer_resources: 'Sumber Daya',
+                    wp_footer_v9: 'Arsip V9',
+                    wp_footer_v11: 'Legacy V11',
+                    wp_footer_api: 'Dokumen API'
+                },
+                vi: {
+                    wp_breadcrumb: 'Lưu trữ Giao thức / Whitepaper',
+                    wp_title: 'Whitepaper <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: 'Tìm từ khóa chương...',
+                    wp_nav_registry: 'Danh mục Điều hướng',
+                    wp_archive_version: 'Phiên bản Lưu trữ',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: 'Xây dựng nền tảng niềm tin số phi tập trung. Giao thức V13 kết hợp hạ tầng vật lý và mật mã để định hình phiên bản cuối của Web3.0.',
+                    wp_footer_protocol: 'Giao thức',
+                    wp_footer_core_layer: 'Lớp lõi',
+                    wp_footer_validators: 'Trình xác thực',
+                    wp_footer_economics: 'Kinh tế',
+                    wp_footer_resources: 'Tài nguyên',
+                    wp_footer_v9: 'Lưu trữ V9',
+                    wp_footer_v11: 'Di sản V11',
+                    wp_footer_api: 'Tài liệu API'
+                },
+                jp: {
+                    wp_breadcrumb: 'プロトコルアーカイブ / ホワイトペーパー',
+                    wp_title: 'ホワイトペーパー <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: '章のキーワードで検索...',
+                    wp_nav_registry: 'ナビゲーション索引',
+                    wp_archive_version: 'アーカイブ版',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: '分散型のデジタルトラスト基盤を構築します。V13 プロトコルは物理インフラと暗号技術を融合し、Web3.0 の最終形を定義します。',
+                    wp_footer_protocol: 'プロトコル',
+                    wp_footer_core_layer: 'コアレイヤー',
+                    wp_footer_validators: 'バリデータ',
+                    wp_footer_economics: '経済',
+                    wp_footer_resources: 'リソース',
+                    wp_footer_v9: 'V9 アーカイブ',
+                    wp_footer_v11: 'V11 レガシー',
+                    wp_footer_api: 'API ドキュメント'
+                },
+                ko: {
+                    wp_breadcrumb: '프로토콜 아카이브 / 백서',
+                    wp_title: '백서 <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: '챕터 키워드 검색...',
+                    wp_nav_registry: '내비게이션 레지스트리',
+                    wp_archive_version: '아카이브 버전',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: '탈중앙화된 디지털 신뢰 기반을 구축합니다. V13 프로토콜은 물리 인프라와 암호 기술을 결합해 Web3.0의 최종 형태를 정의합니다.',
+                    wp_footer_protocol: '프로토콜',
+                    wp_footer_core_layer: '코어 레이어',
+                    wp_footer_validators: '검증자',
+                    wp_footer_economics: '경제',
+                    wp_footer_resources: '리소스',
+                    wp_footer_v9: 'V9 아카이브',
+                    wp_footer_v11: 'V11 레거시',
+                    wp_footer_api: 'API 문서'
+                },
+                th: {
+                    wp_breadcrumb: 'คลังโปรโตคอล / ไวท์เปเปอร์',
+                    wp_title: 'ไวท์เปเปอร์ <span class="text-brand">/ SPEC</span>',
+                    wp_search_placeholder: 'ค้นหาคำสำคัญของบท...',
+                    wp_nav_registry: 'ทะเบียนการนำทาง',
+                    wp_archive_version: 'เวอร์ชันคลังข้อมูล',
+                    wp_footer_brand: 'W/A ARCHIVE',
+                    wp_footer_desc: 'สร้างรากฐานความเชื่อมั่นดิจิทัลแบบกระจายศูนย์ โปรโตคอล V13 ผสานโครงสร้างพื้นฐานทางกายภาพกับการเข้ารหัสเพื่อกำหนดรูปแบบสุดท้ายของ Web3.0',
+                    wp_footer_protocol: 'โปรโตคอล',
+                    wp_footer_core_layer: 'ชั้นแกนกลาง',
+                    wp_footer_validators: 'ผู้ตรวจสอบความถูกต้อง',
+                    wp_footer_economics: 'เศรษฐศาสตร์',
+                    wp_footer_resources: 'ทรัพยากร',
+                    wp_footer_v9: 'คลัง V9',
+                    wp_footer_v11: 'Legacy V11',
+                    wp_footer_api: 'เอกสาร API'
+                }
+            };
+
+            function qs(sel) { return document.querySelector(sel); }
+            function qsa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
+            function applyLanguage(lang) {
+                var l = String(lang || 'cn');
+                var dict = I18N[l] || I18N.cn;
+                try { document.documentElement.setAttribute('data-lang', l); } catch (e) {}
+                qsa('[data-i18n]').forEach(function (el) {
+                    var key = el.getAttribute('data-i18n');
+                    if (!key || !(key in dict)) return;
+                    if (el.tagName === 'INPUT') el.setAttribute('placeholder', dict[key]);
+                    else if (el.getAttribute('data-i18n-mode') === 'html') el.innerHTML = dict[key];
+                    else el.textContent = dict[key];
+                });
+
+                var label = qs('#wp-lang-label');
+                if (label) {
+                    var map = {
+                        cn: 'CHINESE (SIMPLIFIED)',
+                        en: 'ENGLISH',
+                        id: 'INDONESIAN',
+                        vi: 'VIETNAMESE',
+                        jp: 'JAPANESE',
+                        ko: 'KOREAN',
+                        th: 'THAI'
+                    };
+                    label.textContent = map[l] || map.cn;
+                }
+            }
+
+            var initialLang = 'cn';
+            try {
+                var saved = localStorage.getItem('v12_lang');
+                if (saved) initialLang = String(saved);
+            } catch (e) {}
+            try { window.__wpLang = initialLang; } catch (e) {}
+            applyLanguage(initialLang);
+
+            // ─── 数据层 ───────────────────────────────────────────
+            function escapeHtml(s) {
+                return String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function renderWpRichText(src) {
+                var raw = String(src || '').replace(/\r\n/g, '\n');
+                raw = raw.replace(/<\s*br\s*\/??\s*>/gi, '\n');
+                raw = raw.replace(/&lt;\s*br\s*\/??\s*&gt;/gi, '\n');
+                var tables = [];
+                var tableRe = /(^\|?.+\|.+$\n^\|?\s*:?-{3,}[^\n]*$\n(?:^\|?.+\|.*$\n?)*)/gm;
+                raw = raw.replace(tableRe, function (m) {
+                    var idx = tables.length;
+                    tables.push(m);
+                    return '\n\n[[[WP_TABLE_' + idx + ']]]\n\n';
+                });
+
+                function renderInline(text) {
+                    var s = escapeHtml(text || '');
+                    s = s.replace(/\*\*(.+?)\*\*/g, '<strong class="wp-emphasis">$1</strong>');
+
+                    // 代表/标签：#xxx# -> chip
+                    s = s.replace(/#([^#\n]+)#/g, function (_, label) {
+                        var t = String(label || '').trim();
+                        if (!t) return '';
+                        var tt = t.toLowerCase();
+                        var cls = '';
+
+                        // 固定品牌命中：让“代表”直观符合认知（fb蓝 / yt红 ...）
+                        if (/facebook|fb/.test(tt) || /脸书/.test(t)) cls = 'wp-chip--a';
+                        else if (/youtube|yt/.test(tt)) cls = 'wp-chip--b';
+                        else if (/twitter|x\b/.test(tt) || /推特/.test(t)) cls = 'wp-chip--a';
+                        else if (/weibo/.test(tt) || /微博/.test(t)) cls = 'wp-chip--f';
+                        else if (/bilibili|b站/.test(tt) || /哔哩哔哩/.test(t)) cls = 'wp-chip--a';
+                        else if (/bb(s)?\b/.test(tt) || /\bBBS\b/.test(t) || /论坛/.test(t)) cls = 'wp-chip--e';
+                        else if (/门户网站/.test(t) || /portal\s*site/.test(tt)) cls = 'wp-chip--d';
+                        else if (/google/.test(tt)) cls = 'wp-chip--c';
+                        else if (/telegram|tg/.test(tt) || /电报/.test(t)) cls = 'wp-chip--a';
+                        else if (/discord/.test(tt)) cls = 'wp-chip--e';
+                        else {
+                            // 未命中品牌：稳定哈希到通用调色板
+                            var sum = 0;
+                            for (var i = 0; i < t.length; i++) sum = (sum + t.charCodeAt(i) * (i + 1)) % 100000;
+                            var variants = ['wp-chip--c', 'wp-chip--a', 'wp-chip--b', 'wp-chip--d', 'wp-chip--e'];
+                            cls = variants[sum % variants.length];
+                        }
+                        return '<span class="wp-chip ' + cls + '">' + escapeHtml(t) + '</span>';
+                    });
+
+                    return s;
+                }
+
+                function parseTable(md) {
+                    var lines = String(md || '').trim().split('\n').filter(Boolean);
+                    if (lines.length < 2) return '';
+
+                    function renderMark(s) {
+                        var t = String(s || '').trim();
+                        if (!t) return '';
+                        if (/^(?:✓|√|✔)$/.test(t)) return '<span class="wp-mark wp-mark--yes">' + escapeHtml(t) + '</span>';
+                        if (/^(?:×|✗|✘|x|X)$/.test(t)) return '<span class="wp-mark wp-mark--no">' + escapeHtml(t) + '</span>';
+                        return renderInline(s);
+                    }
+
+                    function splitRow(line) {
+                        var r = String(line || '').trim();
+                        if (r.startsWith('|')) r = r.slice(1);
+                        if (r.endsWith('|')) r = r.slice(0, -1);
+                        return r.split('|').map(function (c) { return String(c).trim(); });
+                    }
+
+                    var head = splitRow(lines[0]);
+                    var sep = splitRow(lines[1]);
+                    var isWide = head.length > 5;
+                    var aligns = sep.map(function (c) {
+                        var t = String(c).trim();
+                        var left = t.startsWith(':');
+                        var right = t.endsWith(':');
+                        if (left && right) return 'center';
+                        if (right) return 'right';
+                        if (left) return 'left';
+                        return 'left';
+                    });
+
+                    var thead = '<thead><tr>' + head.map(function (h, i) {
+                        return '<th style="text-align:' + (aligns[i] || 'left') + '">' + renderInline(h) + '</th>';
+                    }).join('') + '</tr></thead>';
+
+                    var bodyLines = lines.slice(2);
+                    var tbody = '<tbody>' + bodyLines.map(function (ln) {
+                        var cols = splitRow(ln);
+                        return '<tr>' + head.map(function (_, i) {
+                            var v = cols[i] != null ? cols[i] : '';
+                            return '<td style="text-align:' + (aligns[i] || 'left') + '">' + renderMark(v) + '</td>';
+                        }).join('') + '</tr>';
+                    }).join('') + '</tbody>';
+
+                    return '<div class="wp-table-wrap' + (isWide ? ' wp-table-wrap--wide' : '') + '"><table class="wp-table' + (isWide ? ' wp-table--wide' : '') + '">' + thead + tbody + '</table></div>';
+                }
+
+                var blocks = raw.split(/\n\n+/);
+                var out = [];
+                for (var bi = 0; bi < blocks.length; bi++) {
+                    var b = String(blocks[bi] || '').trim();
+                    if (!b) continue;
+
+                    var m = b.match(/^\[\[\[WP_TABLE_(\d+)\]\]\]$/);
+                    if (m) {
+                        var ti = parseInt(m[1], 10);
+                        out.push(parseTable(tables[ti] || ''));
+                        continue;
+                    }
+
+                    if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(b)) {
+                        continue;
+                    }
+
+                    if (/^#{1,3}\s+/.test(b)) {
+                        var lvl = (b.match(/^#+/) || ['#'])[0].length;
+                        var tx = b.replace(/^#{1,3}\s+/, '');
+                        if (lvl === 1) out.push('<h3 class="text-4xl font-black italic tracking-tight text-white/85 mt-14 mb-6">' + renderInline(tx) + '</h3>');
+                        else if (lvl === 2) out.push('<h3 class="text-3xl font-black italic tracking-tight text-white/85 mt-12 mb-5">' + renderInline(tx) + '</h3>');
+                        else out.push('<h3 class="text-2xl font-black italic tracking-tight text-white/85 mt-10 mb-4">' + renderInline(tx) + '</h3>');
+                        continue;
+                    }
+
+                    if (/^>\s?/.test(b)) {
+                        var qt = b.split('\n').map(function (ln) { return String(ln).replace(/^>\s?/, ''); }).join('\n');
+                        var qtPlain = String(qt || '').trim();
+                        if (qtPlain.startsWith('在 Web4.0 时代，我们不再构建') || qtPlain.startsWith('WA Protocol 不是一次普通项目发布')) {
+                            out.push('<p class="text-white/45 leading-loose text-justify">' + renderInline(qtPlain) + '</p>');
+                        } else {
+                            out.push('<div class="wp-quote">' + renderInline(qt).replace(/\n/g, '<br>') + '</div>');
+                        }
+                        continue;
+                    }
+
+                    var lines2 = b.split('\n');
+                    var listItems = [];
+                    var allList = lines2.every(function (ln) { return /^\s*([-•])\s+/.test(ln); });
+                    if (allList) {
+                        for (var li = 0; li < lines2.length; li++) {
+                            var item = String(lines2[li]).replace(/^\s*[-•]\s+/, '');
+                            listItems.push('<li class="ml-5 list-disc">' + renderInline(item) + '</li>');
+                        }
+                        out.push('<ul class="space-y-2 text-white/45 leading-relaxed">' + listItems.join('') + '</ul>');
+                        continue;
+                    }
+
+                    var allOrdered = lines2.every(function (ln) { return /^\s*\d+\.\s+/.test(ln); });
+                    if (allOrdered) {
+                        for (var oi = 0; oi < lines2.length; oi++) {
+                            var item2 = String(lines2[oi]).replace(/^\s*\d+\.\s+/, '');
+                            listItems.push('<li class="ml-5">' + renderInline(item2) + '</li>');
+                        }
+                        out.push('<ol class="wp-ol space-y-5 text-lg leading-relaxed list-decimal">' + listItems.join('') + '</ol>');
+                        continue;
+                    }
+
+                    out.push('<p class="text-white/45 leading-loose text-justify">' + renderInline(lines2.join('\n')).replace(/\n/g, '<br>') + '</p>');
+                }
+                return out.join('');
+            }
+
+            function pickSub(src) {
+                var s = String(src || '').trim();
+                if (!s) return '';
+                var p = s.split(/\n\n+/)[0].replace(/\n+/g, ' ').trim();
+                return p.length > 48 ? p.slice(0, 48) + '…' : p;
+            }
+            function buildChaptersFromSections(sections) {
+                return (sections || []).map(function (s) {
+                    var id = 'sec_' + String(s.id || '').trim();
+                    return {
+                        id: id,
+                        title: s.title || '',
+                        sub: pickSub(s.content),
+                        chips: ['WHITEPAPER', String((window.__wpContentLangUsed || 'zh') || 'zh').toUpperCase()],
+                        content: s.content || ''
+                    };
+                });
+            }
+
+            function loadWhitepaperSections(lang) {
+                var l = String(lang || 'cn');
+                if (l === 'cn') l = 'zh';
+                var url = './whitepaper-content.' + l + '.json';
+                var fallbackUrl = './whitepaper-content.zh.json';
+
+                function fetchJson(u) {
+                    return fetch(u, { cache: 'no-store' })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('Failed to load whitepaper content: ' + r.status);
+                            return r.json();
+                        })
+                        .then(function (data) {
+                            try { window.__wpContentLangUsed = (u === fallbackUrl) ? 'zh' : l; } catch (e) {}
+                            if (Array.isArray(data)) return data;
+                            if (data && Array.isArray(data.sections)) return data.sections;
+                            return [];
+                        });
+                }
+
+                return fetchJson(url).catch(function () {
+                    return fetchJson(fallbackUrl);
+                });
+            }
+
+            var Data = {
+                loadSections: loadWhitepaperSections,
+                buildChapters: buildChaptersFromSections
+            };
+
+            var State = {
+                activeSectionId: ''
+            };
+
+            var Render = {
+                clear: function (els) {
+                    (els || []).forEach(function (el) {
+                        if (el) el.innerHTML = '';
+                    });
+                },
+                tocItem: function (ch, onClick) {
+                    var tocItem = document.createElement('div');
+                    tocItem.className = 'toc-item group p-5 border border-white/5 glass-panel cursor-pointer transition-all duration-300 hover:border-brand/40 hover:-translate-y-0.5';
+                    tocItem.dataset.target = 'section-' + ch.id;
+                    tocItem.innerHTML =
+                        '<div class="flex items-start gap-4">' +
+                        '<span class="toc-num text-[12px] font-mono font-bold text-white/20 group-hover:text-brand transition-colors">' + ch.id + '</span>' +
+                        '<div>' +
+                        '<h4 class="toc-title text-[13px] font-bold text-white/60 group-hover:text-white leading-tight mb-2 transition-colors">' + ch.title + '</h4>' +
+                        '<div class="flex gap-1.5">' +
+                        ch.chips.map(function (c) {
+                            return '<span class="px-1.5 py-0.5 bg-white/5 text-[8px] font-mono text-white/25">' + c + '</span>';
+                        }).join('') +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                    if (typeof onClick === 'function') tocItem.addEventListener('click', onClick);
+                    return tocItem;
+                },
+                section: function (ch) {
+                    var section = document.createElement('section');
+                    section.id = 'section-' + ch.id;
+                    section.className = 'mb-64 relative reveal-node';
+                    var sectionTitle = ch.title;
+                    if (ch.id === '09') sectionTitle = String(sectionTitle || '').replace('交易、支付', '<br>交易、支付');
+                    section.innerHTML =
+                        '<span class="section-num">' + ch.id + '</span>' +
+                        '<div class="section-node-label flex items-center gap-4 mb-10">' +
+                        '<div class="w-3 h-3 bg-brand shadow-[0_0_10px_#00FFD1]"></div>' +
+                        '<span class="text-xs font-mono text-brand tracking-[0.4em] uppercase">SYSTEM_NODE_0' + ch.id + '</span>' +
+                        '</div>' +
+                        '<h2 class="wp-section-title font-black italic tracking-tighter mb-12 uppercase">' + sectionTitle + '</h2>' +
+                        '<div class="grid grid-cols-12 gap-10">' +
+                        '<div class="col-span-8">' +
+                        '<div class="space-y-6 text-lg">' + renderWpRichText(ch.content) + '</div>' +
+                        '</div>' +
+                        '<div class="col-span-4">' +
+                        '<div class="p-8 border border-white/10 bg-white/5 rounded-2xl">' +
+                        '<h5 class="text-[10px] font-black text-brand uppercase tracking-widest mb-4">Technical Spec</h5>' +
+                        '<div class="space-y-4 font-mono text-xs">' +
+                        '<div class="flex justify-between border-b border-white/5 pb-2"><span class="opacity-50">LATENCY</span><span>&lt;1.2ms</span></div>' +
+                        '<div class="flex justify-between border-b border-white/5 pb-2"><span class="opacity-50">SECURITY</span><span>LEVEL_7</span></div>' +
+                        '<div class="flex justify-between"><span class="opacity-50">SHARDING</span>' +
+                        '<div class="flex gap-1"><div class="w-1.5 h-1.5 bg-brand"></div><div class="w-1.5 h-1.5 bg-brand"></div><div class="w-1.5 h-1.5 bg-white/20"></div></div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                    return section;
+                }
+            };
+
+            function initWhitepaper(chapters) {
+                var toc = document.getElementById('wp-toc');
+                var content = document.getElementById('wp-content');
+                if (!toc || !content) return;
+
+                Render.clear([toc, content]);
+
+                var mainEl = document.getElementById('wp-main');
+                var anchorEl = document.querySelector('#wp-aside-label p');
+
+                chapters.forEach(function (ch) {
+                    toc.appendChild(Render.tocItem(ch, function () {
+                        var target = document.getElementById('section-' + ch.id);
+                        if (!target) return;
+                        if (!mainEl || !anchorEl) return;
+
+                        var nodeLabel = target.querySelector('.section-node-label');
+                        if (!nodeLabel) return;
+
+                        State.activeSectionId = 'section-' + ch.id;
+                        var targetScrollTop = computeScrollTopToAlign(mainEl, nodeLabel, anchorEl);
+                        animateScrollTo(mainEl, targetScrollTop, function () {
+                            refineAlignment(mainEl, nodeLabel, anchorEl, 3);
+                            Interaction.stabilizeBaseline(6000);
+                        });
+                    }));
+                    content.appendChild(Render.section(ch));
+                });
+
+                lucide.createIcons();
+
+                Interaction.syncBaselineInset();
+                requestAnimationFrame(Interaction.syncBaselineInset);
+                setTimeout(Interaction.syncBaselineInset, 120);
+                requestAnimationFrame(function () { Interaction.realignActiveSection(); });
+                setTimeout(function () { Interaction.realignActiveSection(); }, 160);
+                window.addEventListener('resize', Interaction.syncBaselineInset);
+
+                Interaction.setupReveal(mainEl);
+                Interaction.setupTocActive(chapters, mainEl);
+                Interaction.stabilizeBaseline(2200);
+            }
+
+            function computeScrollTopToAlign(mainEl, nodeLabel, anchorEl) {
+                var scale = getScale();
+                var mainRect = mainEl.getBoundingClientRect();
+                var anchorTop = anchorEl.getBoundingClientRect().top;
+                var desiredOffsetInMain = (anchorTop - mainRect.top) / scale;
+                var nodeOffsetInMain = mainEl.scrollTop + ((nodeLabel.getBoundingClientRect().top - mainRect.top) / scale);
+                return Math.max(0, nodeOffsetInMain - desiredOffsetInMain);
+            }
+
+            function refineAlignment(mainEl, nodeLabel, anchorEl, maxTries) {
+                var tries = 0;
+                var limit = (typeof maxTries === 'number' && maxTries > 0) ? maxTries : 3;
+                function refine() {
+                    tries++;
+                    var scale2 = getScale();
+                    var anchorTop2 = anchorEl.getBoundingClientRect().top;
+                    var labelTop2 = nodeLabel.getBoundingClientRect().top;
+                    var delta2 = (labelTop2 - anchorTop2) / scale2;
+                    if (Math.abs(delta2) < 0.06) return;
+                    mainEl.scrollTop = Math.max(0, mainEl.scrollTop + delta2);
+                    if (tries < limit) requestAnimationFrame(refine);
+                }
+                requestAnimationFrame(refine);
+            }
+
+            var Interaction = {
+                syncBaselineInset: function () {
+                    var wpContent = document.getElementById('wp-content');
+                    var mainEl = document.getElementById('wp-main');
+                    var anchorEl = document.querySelector('#wp-aside-label p');
+                    if (!wpContent || !mainEl || !anchorEl) return;
+                    var scale = getScale();
+                    var mainRect = mainEl.getBoundingClientRect();
+                    var anchorTop = anchorEl.getBoundingClientRect().top;
+                    var desiredOffsetInMain = (anchorTop - mainRect.top) / scale;
+                    wpContent.style.paddingTop = Math.max(0, desiredOffsetInMain) + 'px';
+                },
+                stabilizeBaseline: function (durationMs) {
+                    var until = performance.now() + (typeof durationMs === 'number' ? durationMs : 15000);
+                    var lastBaseline = null;
+                    var stableFrames = 0;
+                    function tick() {
+                        var mainEl = document.getElementById('wp-main');
+                        var anchorEl = document.querySelector('#wp-aside-label p');
+                        if (!mainEl || !anchorEl) return;
+
+                        var scale = getScale();
+                        var mainRect = mainEl.getBoundingClientRect();
+                        var anchorTop = anchorEl.getBoundingClientRect().top;
+                        var baseline = (anchorTop - mainRect.top) / scale;
+
+                        var activeId = State.activeSectionId;
+                        if (!activeId) {
+                            var activeItem = document.querySelector('.toc-item.is-active');
+                            if (activeItem && activeItem.dataset && activeItem.dataset.target) activeId = activeItem.dataset.target;
+                        }
+
+                        var misalign = 0;
+                        if (activeId) {
+                            var sectionEl = document.getElementById(activeId);
+                            if (sectionEl) {
+                                var nodeLabel = sectionEl.querySelector('.section-node-label');
+                                if (nodeLabel) {
+                                    var labelTop = nodeLabel.getBoundingClientRect().top;
+                                    misalign = (labelTop - anchorTop) / scale;
+                                }
+                            }
+                        }
+
+                        var baselineChanged = (lastBaseline === null) ? true : (Math.abs(baseline - lastBaseline) > 0.06);
+                        var needsRealign = Math.abs(misalign) > 0.06;
+
+                        Interaction.syncBaselineInset();
+
+                        if (lastBaseline === null) lastBaseline = baseline;
+                        if (baselineChanged) lastBaseline = baseline;
+
+                        if (needsRealign) {
+                            stableFrames = 0;
+                            Interaction.realignActiveSection();
+                        } else if (baselineChanged) {
+                            stableFrames = 0;
+                        } else {
+                            stableFrames++;
+                        }
+
+                        if (activeId && stableFrames >= 10) return;
+                        if (performance.now() >= until) return;
+                        requestAnimationFrame(tick);
+                    }
+                    requestAnimationFrame(tick);
+                },
+                realignActiveSection: function () {
+                    var mainEl = document.getElementById('wp-main');
+                    var anchorEl = document.querySelector('#wp-aside-label p');
+
+                    var activeId = State.activeSectionId;
+                    if (!activeId) {
+                        var activeItem = document.querySelector('.toc-item.is-active');
+                        if (activeItem && activeItem.dataset && activeItem.dataset.target) activeId = activeItem.dataset.target;
+                    }
+                    if (!activeId) return;
+
+                    var sectionEl = document.getElementById(activeId);
+                    if (!sectionEl) return;
+
+                    var nodeLabel = sectionEl.querySelector('.section-node-label');
+                    if (!nodeLabel) return;
+
+                    refineAlignment(mainEl, nodeLabel, anchorEl, 12);
+                },
+                setupReveal: function (rootEl) {
+                    var observer = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting) entry.target.classList.add('visible');
+                        });
+                    }, { threshold: 0.08, root: rootEl });
+                    document.querySelectorAll('.reveal-node').forEach(function (node) {
+                        observer.observe(node);
+                    });
+                },
+                setupTocActive: function (chapters, mainEl) {
+                    var tocItems = Array.from(document.querySelectorAll('.toc-item'));
+                    var sectionEls = chapters.map(function (ch) {
+                        return document.getElementById('section-' + ch.id);
+                    }).filter(Boolean);
+
+                    function updateTocActive() {
+                        var anchorEl = document.querySelector('#wp-aside-label p');
+                        if (!anchorEl) return;
+                        var thresholdTop = anchorEl.getBoundingClientRect().top + 1;
+
+                        var activeId = sectionEls[0] ? sectionEls[0].id : '';
+                        for (var i = 0; i < sectionEls.length; i++) {
+                            var el = sectionEls[i];
+                            var nodeLabel = el.querySelector('.section-node-label');
+                            if (!(nodeLabel instanceof HTMLElement)) continue;
+                            var labelTop = nodeLabel.getBoundingClientRect().top;
+                            if (labelTop <= thresholdTop) activeId = el.id;
+                        }
+                        State.activeSectionId = activeId;
+                        tocItems.forEach(function (item) {
+                            item.classList.toggle('is-active', item.dataset.target === activeId);
+                        });
+                    }
+
+                    mainEl.addEventListener('scroll', function () {
+                        requestAnimationFrame(updateTocActive);
+                    }, { passive: true });
+                    updateTocActive();
+                },
+                applyScale: function (container) {
+                    var w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                    var scale = Math.min(1, Math.round((w / 1440) * 10000) / 10000);
+                    document.documentElement.style.setProperty('--wp-scale', String(scale));
+                    container.style.transform = 'translateX(-50%) scale(' + scale + ')';
+                    container.style.transformOrigin = 'top left';
+                    container.style.left = '50%';
+                }
+            };
+
+            function getScale() {
+                var scaleVar = getComputedStyle(document.documentElement).getPropertyValue('--wp-scale');
+                return parseFloat(scaleVar) || 1;
+            }
+
+            function animateScrollTo(el, to, onDone) {
+                var from = el.scrollTop;
+                var dist = to - from;
+                if (Math.abs(dist) < 0.5) {
+                    el.scrollTop = to;
+                    if (typeof onDone === 'function') onDone();
+                    return;
+                }
+
+                if (el.__wpScrollRaf) cancelAnimationFrame(el.__wpScrollRaf);
+
+                var duration = Math.min(650, Math.max(220, Math.abs(dist) * 0.55));
+                var start = performance.now();
+                function easeInOutCubic(t) {
+                    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                }
+                function frame(now) {
+                    var p = Math.min(1, (now - start) / duration);
+                    var v = from + dist * easeInOutCubic(p);
+                    el.scrollTop = v;
+                    if (p < 1) el.__wpScrollRaf = requestAnimationFrame(frame);
+                    else {
+                        el.scrollTop = to;
+                        el.__wpScrollRaf = 0;
+                        if (typeof onDone === 'function') onDone();
+                    }
+                }
+                el.__wpScrollRaf = requestAnimationFrame(frame);
+                Interaction.setupReveal(mainEl);
+                Interaction.setupTocActive(chapters, mainEl);
+                Interaction.stabilizeBaseline(2200);
+            }
+
+            function bootstrap() {
+                Data.loadSections(window.__wpLang || initialLang)
+                    .then(function (sections) {
+                        var chapters = Data.buildChapters(sections);
+                        initWhitepaper(chapters);
+                    })
+                    .catch(function (e) {
+                        console.error(e);
+                        initWhitepaper([]);
+                    });
+
+                if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+                    document.fonts.ready.then(function () {
+                        Interaction.syncBaselineInset();
+                        Interaction.realignActiveSection();
+                        Interaction.stabilizeBaseline(1400);
+                    });
+                }
+                window.addEventListener('load', function () {
+                    Interaction.syncBaselineInset();
+                    Interaction.realignActiveSection();
+                    Interaction.stabilizeBaseline(1200);
+                });
+
+                var anchorEl = document.querySelector('#wp-aside-label p');
+                if (anchorEl && window.ResizeObserver) {
+                    var ro = new ResizeObserver(function () {
+                        Interaction.syncBaselineInset();
+                        Interaction.realignActiveSection();
+                        Interaction.stabilizeBaseline(800);
+                    });
+                    ro.observe(anchorEl);
+                }
+
+                var container = document.getElementById('wp-container');
+                var scaleRaf = 0;
+                function requestScale() {
+                    if (scaleRaf) return;
+                    scaleRaf = requestAnimationFrame(function () {
+                        scaleRaf = 0;
+                        Interaction.applyScale(container);
+                        Interaction.syncBaselineInset();
+                        Interaction.realignActiveSection();
+                    });
+                }
+                window.addEventListener('resize', requestScale);
+                if (window.visualViewport) window.visualViewport.addEventListener('resize', requestScale);
+                Interaction.applyScale(container);
+                Interaction.syncBaselineInset();
+                Interaction.realignActiveSection();
+                container.style.visibility = 'visible';
+            }
+
+            bootstrap();
+
+        });
+    </script>
+</body>
+</html>
