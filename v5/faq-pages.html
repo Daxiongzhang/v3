@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="filename" content="faq.html">
+    <title>W/A FAQ - KNOWLEDGE BASE V12</title>
+    <script>
+        (function () {
+            try {
+                var designWidth = 1440;
+                var viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                var scale = Math.min(1, viewportWidth / designWidth);
+                scale = Math.round(scale * 10000) / 10000;
+                document.documentElement.style.setProperty('--faq-scale', String(scale));
+            } catch (e) {}
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#00FFD1',
+                        v12: '#BBFF00',
+                        terminal: '#020202',
+                        accent: 'rgba(0, 255, 209, 0.15)'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --neon-glow: 0 0 30px rgba(0, 255, 209, 0.15); }
+        body { background: #000; color: #fff; margin: 0; overflow: hidden; height: 100vh; }
+
+        body { --faq-heavy: 0; }
+        body.faq-ready { --faq-heavy: 1; }
+
+        :root { --faq-drawer-shift: 0px; --faq-drawer-gap: 24px; }
+
+        #v12-faq-wrapper {
+            width: 1440px;
+            min-height: 100vh;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform-origin: top center;
+            transform: translateX(-50%) scale(var(--faq-scale, 1));
+            transition: transform 0.35s cubic-bezier(0.77, 0, 0.175, 1);
+            visibility: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        body.drawer-open #v12-faq-wrapper {
+            transform: translateX(-50%) scale(var(--faq-scale, 1));
+            filter: blur(10px) saturate(0.95);
+            opacity: 0.78;
+            border-radius: 28px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 30px 80px rgba(0,0,0,0.65);
+            overflow: hidden;
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.25s ease, filter 0.25s ease;
+        }
+
+        .scanline {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), linear-gradient(90deg, rgba(0,255,209,0.01), rgba(0,0,0,0), rgba(0,255,209,0.01));
+            background-size: 100% 4px, 20% 100%;
+            pointer-events: none; z-index: 100;
+            opacity: 0.12;
+        }
+
+        body.faq-ready .scanline {
+            opacity: 1;
+        }
+
+        .industrial-node {
+            background: rgba(15, 15, 15, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s ease;
+        }
+
+        .category-item.active {
+            background: linear-gradient(0deg, rgba(0, 255, 209, 0.10), rgba(0, 255, 209, 0.10)), rgba(15, 15, 15, 0.6);
+            color: var(--brand);
+            box-shadow: inset 0 0 0 1px rgba(0, 255, 209, 0.85), 0 0 0 1px rgba(0, 255, 209, 0.20), 0 0 calc(22px * var(--faq-heavy)) rgba(0, 255, 209, 0.10);
+        }
+
+        #faq-lang-menu { backdrop-filter: blur(calc(24px * var(--faq-heavy))); }
+
+        @media (prefers-reduced-motion: reduce) {
+            .industrial-node,
+            .faq-card,
+            #riskOverlay,
+            #riskDrawer {
+                transition: none !important;
+            }
+            .scanline {
+                opacity: 0.08;
+            }
+        }
+
+        .category-item.active i,
+        .category-item.active svg {
+            opacity: 1;
+            color: #00FFD1;
+            stroke: #00FFD1;
+        }
+
+        .category-item.active::before {
+            content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 1px; background: var(--brand);
+        }
+
+        .faq-card {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.3s ease;
+        }
+        .faq-card:hover { background: rgba(255,255,255,0.02); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 255, 209, 0.2); }
+
+        #riskOverlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            backdrop-filter: blur(0px);
+            background: rgba(0,0,0,0.18);
+        }
+        #riskOverlay.active {
+            opacity: 1;
+            visibility: visible;
+            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.35);
+        }
+
+        #riskDrawer {
+            opacity: 0;
+            pointer-events: none;
+            right: 0 !important;
+            transform: translateX(calc(100% + 40px));
+            transition: transform 0.35s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.2s ease;
+        }
+        #riskDrawer.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <div class="scanline"></div>
+
+    <div id="v12-faq-wrapper">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-20 pointer-events-none">
+            <div class="w-1 h-32 bg-brand/30"></div>
+            <span class="text-[8px] font-mono [writing-mode:vertical-lr]">SYSTEM_QUERY_ACTIVE</span>
+        </div>
+
+        <header class="h-40 px-10 border-b border-white/5 flex flex-col justify-center gap-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="v12-index.html" class="p-2 border border-white/10 hover:border-brand transition-colors">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-brand"></i>
+                    </a>
+                    <div class="h-4 w-px bg-white/10 mx-2"></div>
+                    <span data-i18n="faq_breadcrumb" class="text-[10px] font-mono text-white/40 uppercase tracking-[4px]">Knowledge Base / FAQ</span>
+                </div>
+                <div class="relative flex items-center gap-4 text-[10px] font-mono">
+                    <button id="faq-lang-trigger" type="button" class="text-brand uppercase tracking-[4px] hover:opacity-90 transition-opacity" aria-haspopup="menu" aria-expanded="false">CHINESE (SIMPLIFIED)</button>
+                    <div id="faq-lang-menu" class="hidden absolute right-0 top-full mt-2 w-56 bg-black/95 border border-white/10 backdrop-blur-xl shadow-2xl z-[220]"></div>
+                </div>
+            </div>
+            
+            <div class="flex items-end justify-between">
+                <h1 data-i18n="faq_title" data-i18n-mode="html" class="text-5xl font-black italic tracking-tighter uppercase">百问百答 <span class="text-brand">/ 协议解析</span></h1>
+                <div class="flex items-center gap-4">
+                    <button id="riskTrigger" class="px-4 py-3 bg-brand/10 border border-brand/40 hover:border-brand hover:bg-brand/15 transition-all text-[10px] font-mono uppercase tracking-[4px] text-brand flex items-center gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        <span data-i18n="faq_risk_trigger">执行风险摘要</span>
+                        <span data-i18n="faq_new" class="ml-1 px-2 py-0.5 text-[8px] tracking-[3px] border border-brand/30 text-brand/80 bg-brand/5">NEW</span>
+                    </button>
+                    <div class="relative w-96 group">
+                        <input id="faq-search" type="text" data-i18n="faq_search_placeholder" placeholder="输入关键词搜索节点..." 
+                            class="w-full bg-white/5 border border-white/10 px-6 py-3 text-sm focus:border-brand outline-none transition-all italic">
+                        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-brand"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-1 min-h-0">
+            <aside class="w-80 border-r border-white/5 p-8 flex flex-col gap-2">
+                <div data-i18n="faq_categorization" class="ml-4 text-[9px] font-mono text-white/20 uppercase tracking-[5px] mb-6">Categorization</div>
+
+                <div data-category="all" class="category-item active relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_all" class="font-black italic text-sm">全部</span>
+                    <i data-lucide="layers" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+                <div data-category="basic" class="category-item relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_basic" class="font-black italic text-sm">基础认知</span>
+                    <i data-lucide="layout-grid" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+                <div data-category="revenue" class="category-item relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_revenue" class="font-black italic text-sm">收益与节奏</span>
+                    <i data-lucide="activity" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+                <div data-category="organization" class="category-item relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_organization" class="font-black italic text-sm">组织与推广</span>
+                    <i data-lucide="users" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+                <div data-category="risk" class="category-item relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_risk" class="font-black italic text-sm">风控与信任</span>
+                    <i data-lucide="shield-check" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+                <div data-category="conclusion" class="category-item relative p-4 flex items-center justify-between cursor-pointer industrial-node group hover:border-brand/40 ml-4">
+                    <span data-i18n="faq_cat_conclusion" class="font-black italic text-sm">核心金句</span>
+                    <i data-lucide="quote" class="w-4 h-4 opacity-40 group-hover:opacity-100"></i>
+                </div>
+
+                <div class="mt-auto p-6 bg-brand/5 border border-brand/10 ml-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span data-i18n="faq_node_status" class="text-[8px] font-mono">NODE_STATUS</span>
+                        <div class="flex gap-1">
+                            <div class="w-1 h-1 bg-brand animate-ping"></div>
+                            <div class="w-1 h-1 bg-brand"></div>
+                        </div>
+                    </div>
+                    <p data-i18n="faq_node_status_desc" class="text-[10px] text-white/40 italic">数据库已同步至 2026.09.24 版本，所有解析均经过安全审计。</p>
+                </div>
+            </aside>
+
+            <main class="flex-1 p-12 overflow-y-auto min-h-0">
+                <div class="mb-12 flex items-center gap-4">
+                    <div class="h-px flex-1 bg-white/5"></div>
+                    <span data-i18n="faq_core_data_stream" class="text-[10px] font-mono text-white/20 uppercase">Core Data Stream</span>
+                </div>
+
+                <div id="v12-faq-content" class="space-y-1"></div>
+            </main>
+        </div>
+
+        <div id="riskOverlay" class="fixed inset-0 z-[180] bg-black/70"></div>
+        <aside id="riskDrawer" class="fixed top-0 right-0 h-full w-[520px] z-[200] bg-[#050505] border-l border-white/10 shadow-3xl flex flex-col">
+            <div class="h-40 px-10 flex items-center justify-between border-b border-white/10">
+                <div>
+                    <div data-i18n="faq_risk_brief_kicker" class="text-[9px] font-mono text-white/20 uppercase tracking-[5px]">Execution Risk Brief</div>
+                    <div data-i18n="faq_risk_brief_title" class="text-2xl font-black italic mt-2">⚠️ 执行风险摘要（投委会版）</div>
+                </div>
+                <button id="riskClose" class="w-10 h-10 border border-white/10 hover:border-brand/60 hover:bg-white/5 transition-all flex items-center justify-center">
+                    <i data-lucide="x" class="w-4 h-4 text-brand"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto px-10 py-10 space-y-6">
+                <div class="industrial-node p-6 bg-white/[0.02]">
+                    <div data-i18n="faq_risk_01_title" class="text-[10px] font-mono text-brand uppercase tracking-[4px] mb-3">01 / 协议本质</div>
+                    <p data-i18n="faq_risk_01_desc" class="text-white/55 text-sm leading-relaxed italic">W/A 是一个全链上（All-On-Chain）的 Web4.0 协议，而非一家公司。协议不托管资产，不进行任何形式的自由裁量决策，也不保证任何结果。</p>
+                </div>
+                <div class="industrial-node p-6 bg-white/[0.02]">
+                    <div data-i18n="faq_risk_02_title" class="text-[10px] font-mono text-brand uppercase tracking-[4px] mb-3">02 / 收益特征</div>
+                    <p data-i18n="faq_risk_02_desc" class="text-white/55 text-sm leading-relaxed italic">不存在固定、稳定或保证的回报。任何收益完全通过预设的链上机制和用户参与产生。</p>
+                </div>
+                <div class="industrial-node p-6 bg-white/[0.02]">
+                    <div data-i18n="faq_risk_03_title" class="text-[10px] font-mono text-brand uppercase tracking-[4px] mb-3">03 / 核心风险</div>
+                    <p data-i18n="faq_risk_03_desc" class="text-white/55 text-sm leading-relaxed italic">市场波动性风险、协议设计与执行风险、用户行为与采用率风险、监管与司法管辖权的不确定性。</p>
+                </div>
+                <div class="industrial-node p-6 bg-white/[0.02]">
+                    <div data-i18n="faq_risk_04_title" class="text-[10px] font-mono text-brand uppercase tracking-[4px] mb-3">04 / 控制与治理</div>
+                    <p data-i18n="faq_risk_04_desc" class="text-white/55 text-sm leading-relaxed italic">核心协议规则具有不可篡改性（Immutable）。不存在管理后台或“超级管理员”权限，无法进行人为干预或规则覆盖。</p>
+                </div>
+                <div class="industrial-node p-6 bg-white/[0.02]">
+                    <div data-i18n="faq_risk_05_title" class="text-[10px] font-mono text-brand uppercase tracking-[4px] mb-3">05 / 投委会结论</div>
+                    <p data-i18n="faq_risk_05_desc" class="text-white/55 text-sm leading-relaxed italic">W/A 协议通过确定性的代码执行取代了对人为决策的信任。风险并未被消除，而是被显式地编码进了协议规则之中。</p>
+                </div>
+            </div>
+            <div class="px-10 py-8 border-t border-white/10">
+                <div data-i18n="faq_risk_footer_note" class="text-[10px] text-white/35 leading-relaxed italic">💡 本内容仅用于机制讲解与规则说明，不构成任何收益承诺，参数以链上合约为准。</div>
+            </div>
+        </aside>
+
+        <footer class="h-24 px-12 border-t border-white/5 flex items-center justify-between opacity-30 flex-none">
+            <span data-i18n="faq_footer_cert" class="text-[10px] font-mono uppercase tracking-[4px]">V12_FAQ_PROTOCOL_CERTIFIED</span>
+            <div class="flex gap-8">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <i data-lucide="fingerprint" class="w-4 h-4"></i>
+                <i data-lucide="qr-code" class="w-4 h-4"></i>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const LANG_META = {
+                cn: { name: 'CHINESE (SIMPLIFIED)' },
+                en: { name: 'ENGLISH' },
+                id: { name: 'INDONESIAN' },
+                vi: { name: 'VIETNAMESE' },
+                jp: { name: 'JAPANESE' },
+                ko: { name: 'KOREAN' },
+                th: { name: 'THAI' }
+            };
+
+            const I18N_UI = {
+                cn: {
+                    faq_breadcrumb: '知识库 / FAQ',
+                    faq_title: '百问百答 <span class="text-brand">/ 协议解析</span>',
+                    faq_risk_trigger: '执行风险摘要',
+                    faq_new: 'NEW',
+                    faq_search_placeholder: '输入关键词搜索节点...',
+                    faq_categorization: '分类',
+                    faq_cat_all: '全部',
+                    faq_cat_basic: '基础认知',
+                    faq_cat_revenue: '收益与节奏',
+                    faq_cat_organization: '组织与推广',
+                    faq_cat_risk: '风控与信任',
+                    faq_cat_conclusion: '核心金句',
+                    faq_node_status: '节点状态',
+                    faq_node_status_desc: '数据库已同步至 2026.09.24 版本，所有解析均经过安全审计。',
+                    faq_core_data_stream: '核心数据流',
+                    faq_risk_brief_kicker: '执行风险摘要',
+                    faq_risk_brief_title: '⚠️ 执行风险摘要（投委会版）',
+                    faq_risk_01_title: '01 / 协议本质',
+                    faq_risk_01_desc: 'W/A 是一个全链上（All-On-Chain）的 Web4.0 协议，而非一家公司。协议不托管资产，不进行任何形式的自由裁量决策，也不保证任何结果。',
+                    faq_risk_02_title: '02 / 收益特征',
+                    faq_risk_02_desc: '不存在固定、稳定或保证的回报。任何收益完全通过预设的链上机制和用户参与产生。',
+                    faq_risk_03_title: '03 / 核心风险',
+                    faq_risk_03_desc: '市场波动性风险、协议设计与执行风险、用户行为与采用率风险、监管与司法管辖权的不确定性。',
+                    faq_risk_04_title: '04 / 控制与治理',
+                    faq_risk_04_desc: '核心协议规则具有不可篡改性（Immutable）。不存在管理后台或“超级管理员”权限，无法进行人为干预或规则覆盖。',
+                    faq_risk_05_title: '05 / 投委会结论',
+                    faq_risk_05_desc: 'W/A 协议通过确定性的代码执行取代了对人为决策的信任。风险并未被消除，而是被显式地编码进了协议规则之中。',
+                    faq_risk_footer_note: '💡 本内容仅用于机制讲解与规则说明，不构成任何收益承诺，参数以链上合约为准。',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                en: {
+                    faq_breadcrumb: 'Knowledge Base / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ Protocol Notes</span>',
+                    faq_risk_trigger: 'Execution Risk Brief',
+                    faq_new: 'NEW',
+                    faq_search_placeholder: 'Search nodes by keyword...',
+                    faq_categorization: 'Categorization',
+                    faq_cat_all: 'All',
+                    faq_cat_basic: 'Basics',
+                    faq_cat_revenue: 'Revenue & Rhythm',
+                    faq_cat_organization: 'Organization & Growth',
+                    faq_cat_risk: 'Risk & Trust',
+                    faq_cat_conclusion: 'Key Quotes',
+                    faq_node_status: 'NODE_STATUS',
+                    faq_node_status_desc: 'Database synced to 2026.09.24. All notes have passed security review.',
+                    faq_core_data_stream: 'Core Data Stream',
+                    faq_risk_brief_kicker: 'Execution Risk Brief',
+                    faq_risk_brief_title: '⚠️ Execution Risk Brief (IC Version)',
+                    faq_risk_01_title: '01 / Protocol Nature',
+                    faq_risk_01_desc: 'W/A is an All-On-Chain Web4.0 protocol, not a company. It does not custody assets, does not exercise discretionary decisions, and does not guarantee any outcome.',
+                    faq_risk_02_title: '02 / Return Profile',
+                    faq_risk_02_desc: 'There are no fixed, stable, or guaranteed returns. Any returns emerge solely from predefined on-chain mechanisms and user participation.',
+                    faq_risk_03_title: '03 / Core Risks',
+                    faq_risk_03_desc: 'Market volatility, protocol design/execution risk, user behavior & adoption risk, and regulatory/jurisdictional uncertainty.',
+                    faq_risk_04_title: '04 / Control & Governance',
+                    faq_risk_04_desc: 'Core rules are immutable. There is no admin console or “super-admin” privilege; no manual intervention or rule overrides.',
+                    faq_risk_05_title: '05 / Committee Conclusion',
+                    faq_risk_05_desc: 'W/A replaces trust in human discretion with deterministic code execution. Risks are not removed—they are explicitly encoded into the protocol rules.',
+                    faq_risk_footer_note: '💡 For mechanism explanation only. No return promises. Parameters are subject to on-chain contracts.',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                id: {
+                    faq_breadcrumb: 'Basis Pengetahuan / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ Catatan Protokol</span>',
+                    faq_risk_trigger: 'Ringkasan Risiko Eksekusi',
+                    faq_new: 'BARU',
+                    faq_search_placeholder: 'Cari node dengan kata kunci...',
+                    faq_categorization: 'Kategorisasi',
+                    faq_cat_all: 'Semua',
+                    faq_cat_basic: 'Dasar',
+                    faq_cat_revenue: 'Pendapatan & Ritme',
+                    faq_cat_organization: 'Organisasi & Pertumbuhan',
+                    faq_cat_risk: 'Risiko & Kepercayaan',
+                    faq_cat_conclusion: 'Kutipan Kunci',
+                    faq_node_status: 'STATUS_NODE',
+                    faq_node_status_desc: 'Basis data disinkronkan ke versi 2026.09.24. Semua penjelasan telah melalui audit keamanan.',
+                    faq_core_data_stream: 'Aliran Data Inti',
+                    faq_risk_brief_kicker: 'Ringkasan Risiko Eksekusi',
+                    faq_risk_brief_title: '⚠️ Ringkasan Risiko Eksekusi (Versi Komite Investasi)',
+                    faq_risk_01_title: '01 / Hakikat Protokol',
+                    faq_risk_01_desc: 'W/A adalah protokol Web4.0 yang sepenuhnya on-chain, bukan sebuah perusahaan. Protokol tidak mengelola aset, tidak mengambil keputusan diskresioner, dan tidak menjamin hasil apa pun.',
+                    faq_risk_02_title: '02 / Karakteristik Imbal Hasil',
+                    faq_risk_02_desc: 'Tidak ada imbal hasil tetap, stabil, atau dijamin. Semua imbal hasil muncul dari mekanisme on-chain yang telah ditetapkan dan partisipasi pengguna.',
+                    faq_risk_03_title: '03 / Risiko Inti',
+                    faq_risk_03_desc: 'Risiko volatilitas pasar, desain & eksekusi protokol, perilaku pengguna & adopsi, serta ketidakpastian regulasi dan yurisdiksi.',
+                    faq_risk_04_title: '04 / Kontrol & Tata Kelola',
+                    faq_risk_04_desc: 'Aturan inti bersifat immutable. Tidak ada panel admin atau hak “super-admin”, tidak ada intervensi manual atau penggantian aturan.',
+                    faq_risk_05_title: '05 / Kesimpulan Komite',
+                    faq_risk_05_desc: 'W/A menggantikan kepercayaan pada keputusan manusia dengan eksekusi kode yang deterministik. Risiko tidak dihilangkan, melainkan dikodekan secara eksplisit ke dalam aturan protokol.',
+                    faq_risk_footer_note: '💡 Hanya untuk penjelasan mekanisme. Bukan janji imbal hasil. Parameter mengacu pada kontrak on-chain.',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                vi: {
+                    faq_breadcrumb: 'Kho tri thức / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ Ghi chú Giao thức</span>',
+                    faq_risk_trigger: 'Tóm tắt Rủi ro Thực thi',
+                    faq_new: 'MỚI',
+                    faq_search_placeholder: 'Tìm nút theo từ khóa...',
+                    faq_categorization: 'Phân loại',
+                    faq_cat_all: 'Tất cả',
+                    faq_cat_basic: 'Cơ bản',
+                    faq_cat_revenue: 'Doanh thu & Nhịp độ',
+                    faq_cat_organization: 'Tổ chức & Tăng trưởng',
+                    faq_cat_risk: 'Rủi ro & Niềm tin',
+                    faq_cat_conclusion: 'Trích dẫn chính',
+                    faq_node_status: 'TRẠNG_THÁI_NÚT',
+                    faq_node_status_desc: 'CSDL đã đồng bộ tới phiên bản 2026.09.24. Tất cả nội dung đã qua kiểm toán an ninh.',
+                    faq_core_data_stream: 'Luồng Dữ liệu Lõi',
+                    faq_risk_brief_kicker: 'Tóm tắt Rủi ro Thực thi',
+                    faq_risk_brief_title: '⚠️ Tóm tắt Rủi ro Thực thi (Bản Hội đồng)',
+                    faq_risk_01_title: '01 / Bản chất Giao thức',
+                    faq_risk_01_desc: 'W/A là một giao thức Web4.0 All-On-Chain, không phải công ty. Giao thức không lưu ký tài sản, không đưa ra quyết định tùy nghi và không đảm bảo bất kỳ kết quả nào.',
+                    faq_risk_02_title: '02 / Đặc tính Lợi nhuận',
+                    faq_risk_02_desc: 'Không có lợi nhuận cố định, ổn định hay được đảm bảo. Mọi lợi nhuận chỉ phát sinh từ cơ chế on-chain định sẵn và sự tham gia của người dùng.',
+                    faq_risk_03_title: '03 / Rủi ro Cốt lõi',
+                    faq_risk_03_desc: 'Biến động thị trường, rủi ro thiết kế & thực thi giao thức, rủi ro hành vi & mức độ chấp nhận, và bất định pháp lý/jurisdiction.',
+                    faq_risk_04_title: '04 / Kiểm soát & Quản trị',
+                    faq_risk_04_desc: 'Quy tắc cốt lõi là bất biến. Không có bảng quản trị hay quyền “siêu quản trị”, không can thiệp thủ công hoặc ghi đè quy tắc.',
+                    faq_risk_05_title: '05 / Kết luận Hội đồng',
+                    faq_risk_05_desc: 'W/A thay thế niềm tin vào quyết định con người bằng thực thi mã xác định. Rủi ro không bị loại bỏ mà được mã hóa rõ ràng vào quy tắc giao thức.',
+                    faq_risk_footer_note: '💡 Chỉ nhằm giải thích cơ chế. Không phải cam kết lợi nhuận. Tham số theo hợp đồng on-chain.',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                jp: {
+                    faq_breadcrumb: 'ナレッジベース / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ プロトコル解説</span>',
+                    faq_risk_trigger: '実行リスク概要',
+                    faq_new: 'NEW',
+                    faq_search_placeholder: 'キーワードで検索...',
+                    faq_categorization: 'カテゴリ',
+                    faq_cat_all: 'すべて',
+                    faq_cat_basic: '基礎',
+                    faq_cat_revenue: '収益とリズム',
+                    faq_cat_organization: '組織と成長',
+                    faq_cat_risk: 'リスクと信頼',
+                    faq_cat_conclusion: '重要フレーズ',
+                    faq_node_status: 'NODE_STATUS',
+                    faq_node_status_desc: 'データベースは 2026.09.24 版に同期済み。すべての解説はセキュリティ監査済みです。',
+                    faq_core_data_stream: 'コアデータストリーム',
+                    faq_risk_brief_kicker: '実行リスク概要',
+                    faq_risk_brief_title: '⚠️ 実行リスク概要（委員会版）',
+                    faq_risk_01_title: '01 / プロトコルの本質',
+                    faq_risk_01_desc: 'W/A は All-On-Chain の Web4.0 プロトコルであり、会社ではありません。資産を保管せず、裁量的な意思決定を行わず、結果を保証しません。',
+                    faq_risk_02_title: '02 / リターン特性',
+                    faq_risk_02_desc: '固定・安定・保証されたリターンは存在しません。リターンは事前定義されたオンチェーン機構と参加によってのみ発生します。',
+                    faq_risk_03_title: '03 / コアリスク',
+                    faq_risk_03_desc: '市場変動、プロトコル設計/実行、ユーザー行動と採用、規制・司法管轄の不確実性。',
+                    faq_risk_04_title: '04 / コントロールとガバナンス',
+                    faq_risk_04_desc: 'コアルールは不変です。管理画面や“スーパー管理者”権限はなく、人為的介入やルール上書きはできません。',
+                    faq_risk_05_title: '05 / 委員会結論',
+                    faq_risk_05_desc: 'W/A は人の裁量への信頼を、決定論的なコード実行に置き換えます。リスクは排除されるのではなく、プロトコルルールに明示的にコード化されます。',
+                    faq_risk_footer_note: '💡 仕組み解説のみを目的とします。リターンの保証はありません。パラメータはオンチェーンコントラクトに準拠します。',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                ko: {
+                    faq_breadcrumb: '지식 베이스 / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ 프로토콜 해설</span>',
+                    faq_risk_trigger: '실행 리스크 요약',
+                    faq_new: 'NEW',
+                    faq_search_placeholder: '키워드로 노드 검색...',
+                    faq_categorization: '분류',
+                    faq_cat_all: '전체',
+                    faq_cat_basic: '기초',
+                    faq_cat_revenue: '수익 & 리듬',
+                    faq_cat_organization: '조직 & 확장',
+                    faq_cat_risk: '리스크 & 신뢰',
+                    faq_cat_conclusion: '핵심 문장',
+                    faq_node_status: 'NODE_STATUS',
+                    faq_node_status_desc: 'DB가 2026.09.24 버전으로 동기화되었습니다. 모든 해설은 보안 감사를 통과했습니다.',
+                    faq_core_data_stream: '코어 데이터 스트림',
+                    faq_risk_brief_kicker: '실행 리스크 요약',
+                    faq_risk_brief_title: '⚠️ 실행 리스크 요약(투자위원회 버전)',
+                    faq_risk_01_title: '01 / 프로토콜 본질',
+                    faq_risk_01_desc: 'W/A는 올온체인(All-On-Chain) Web4.0 프로토콜이며, 회사가 아닙니다. 자산을 보관하지 않고, 재량적 의사결정을 하지 않으며, 어떤 결과도 보장하지 않습니다.',
+                    faq_risk_02_title: '02 / 수익 특성',
+                    faq_risk_02_desc: '고정·안정·보장 수익은 존재하지 않습니다. 모든 수익은 사전에 정의된 온체인 메커니즘과 사용자 참여로만 발생합니다.',
+                    faq_risk_03_title: '03 / 핵심 리스크',
+                    faq_risk_03_desc: '시장 변동성, 프로토콜 설계/실행 리스크, 사용자 행동 및 채택 리스크, 규제/관할의 불확실성.',
+                    faq_risk_04_title: '04 / 통제와 거버넌스',
+                    faq_risk_04_desc: '핵심 규칙은 불변(Immutable)입니다. 관리자 콘솔이나 “슈퍼 관리자” 권한이 없으며, 수동 개입이나 규칙 오버라이드는 불가합니다.',
+                    faq_risk_05_title: '05 / 위원회 결론',
+                    faq_risk_05_desc: 'W/A는 인간의 재량 결정을 신뢰하는 대신, 결정론적 코드 실행으로 대체합니다. 리스크는 제거되지 않고 프로토콜 규칙에 명시적으로 코드화됩니다.',
+                    faq_risk_footer_note: '💡 메커니즘 설명 및 규칙 안내용이며, 수익을 약속하지 않습니다. 파라미터는 온체인 계약을 기준으로 합니다.',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                },
+                th: {
+                    faq_breadcrumb: 'ฐานความรู้ / FAQ',
+                    faq_title: 'FAQ <span class="text-brand">/ สรุปโปรโตคอล</span>',
+                    faq_risk_trigger: 'สรุปความเสี่ยงการดำเนินการ',
+                    faq_new: 'ใหม่',
+                    faq_search_placeholder: 'ค้นหาโหนดด้วยคีย์เวิร์ด...',
+                    faq_categorization: 'การจัดหมวดหมู่',
+                    faq_cat_all: 'ทั้งหมด',
+                    faq_cat_basic: 'พื้นฐาน',
+                    faq_cat_revenue: 'รายได้และจังหวะ',
+                    faq_cat_organization: 'องค์กรและการเติบโต',
+                    faq_cat_risk: 'ความเสี่ยงและความไว้วางใจ',
+                    faq_cat_conclusion: 'ประโยคสำคัญ',
+                    faq_node_status: 'สถานะโหนด',
+                    faq_node_status_desc: 'ฐานข้อมูลซิงก์ถึงเวอร์ชัน 2026.09.24 แล้ว เนื้อหาทั้งหมดผ่านการตรวจสอบความปลอดภัย',
+                    faq_core_data_stream: 'สตรีมข้อมูลหลัก',
+                    faq_risk_brief_kicker: 'สรุปความเสี่ยงการดำเนินการ',
+                    faq_risk_brief_title: '⚠️ สรุปความเสี่ยงการดำเนินการ (ฉบับคณะกรรมการ)',
+                    faq_risk_01_title: '01 / ธรรมชาติของโปรโตคอล',
+                    faq_risk_01_desc: 'W/A คือโปรโตคอล Web4.0 แบบ All-On-Chain ไม่ใช่บริษัท โปรโตคอลไม่ดูแลทรัพย์สิน ไม่ตัดสินใจแบบดุลยพินิจ และไม่รับประกันผลลัพธ์ใดๆ',
+                    faq_risk_02_title: '02 / ลักษณะผลตอบแทน',
+                    faq_risk_02_desc: 'ไม่มีผลตอบแทนคงที่ เสถียร หรือรับประกัน ผลตอบแทนทั้งหมดเกิดจากกลไก on-chain ที่กำหนดไว้และการมีส่วนร่วมของผู้ใช้เท่านั้น',
+                    faq_risk_03_title: '03 / ความเสี่ยงหลัก',
+                    faq_risk_03_desc: 'ความผันผวนของตลาด ความเสี่ยงด้านการออกแบบ/การดำเนินการของโปรโตคอล ความเสี่ยงด้านพฤติกรรมและการยอมรับของผู้ใช้ และความไม่แน่นอนด้านกฎระเบียบ/เขตอำนาจศาล',
+                    faq_risk_04_title: '04 / การควบคุมและธรรมาภิบาล',
+                    faq_risk_04_desc: 'กฎหลักเป็นแบบแก้ไขไม่ได้ (Immutable) ไม่มีคอนโซลผู้ดูแลหรือสิทธิ์ “ซูเปอร์แอดมิน” ไม่สามารถแทรกแซงหรือเขียนทับกฎได้',
+                    faq_risk_05_title: '05 / ข้อสรุปของคณะกรรมการ',
+                    faq_risk_05_desc: 'W/A ใช้การทำงานของโค้ดที่กำหนดแน่นอนแทนความเชื่อมั่นในดุลยพินิจของมนุษย์ ความเสี่ยงไม่ได้หายไป แต่ถูกเข้ารหัสไว้อย่างชัดเจนในกฎของโปรโตคอล',
+                    faq_risk_footer_note: '💡 ใช้เพื่ออธิบายกลไกและกฎเท่านั้น ไม่ใช่คำสัญญาผลตอบแทน พารามิเตอร์อ้างอิงตามสัญญา on-chain',
+                    faq_footer_cert: 'V12_FAQ_PROTOCOL_CERTIFIED'
+                }
+            };
+
+            const qs = (sel) => document.querySelector(sel);
+            const qsa = (sel) => Array.from(document.querySelectorAll(sel));
+
+            const applyLanguage = (lang) => {
+                const l = String(lang || 'cn');
+                const dict = I18N_UI[l] || I18N_UI.cn;
+                try { document.documentElement.setAttribute('data-lang', l); } catch (e) {}
+                qsa('[data-i18n]').forEach((el) => {
+                    const key = el.getAttribute('data-i18n');
+                    if (!key || !(key in dict)) return;
+                    if (el.tagName === 'INPUT') el.setAttribute('placeholder', dict[key]);
+                    else if (el.getAttribute('data-i18n-mode') === 'html') el.innerHTML = dict[key];
+                    else el.textContent = dict[key];
+                });
+
+                const t = qs('#faq-lang-trigger');
+                if (t) t.textContent = (LANG_META[l] || LANG_META.cn).name;
+            };
+
+            const setLangMenuOpen = (open) => {
+                const menu = qs('#faq-lang-menu');
+                const trigger = qs('#faq-lang-trigger');
+                if (!menu || !trigger) return;
+                trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                menu.classList.toggle('hidden', !open);
+            };
+
+            const buildLangMenu = (onPick) => {
+                const menu = qs('#faq-lang-menu');
+                if (!menu) return;
+                menu.innerHTML = '';
+                Object.keys(LANG_META).forEach((code) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'w-full text-left px-4 py-3 hover:bg-white/5 text-white/70 hover:text-white transition-colors';
+                    btn.textContent = LANG_META[code].name;
+                    btn.addEventListener('click', () => onPick(code));
+                    menu.appendChild(btn);
+                });
+            };
+
+            let currentLang = 'cn';
+            try {
+                const saved = localStorage.getItem('v12_lang');
+                if (saved) currentLang = String(saved);
+            } catch (e) {}
+
+            const Dom = {
+                wrapper: document.getElementById('v12-faq-wrapper'),
+                content: document.getElementById('v12-faq-content'),
+                categories: Array.from(document.querySelectorAll('.category-item')),
+                searchInput: document.getElementById('faq-search'),
+                main: document.querySelector('main'),
+                riskTrigger: document.getElementById('riskTrigger'),
+                riskOverlay: document.getElementById('riskOverlay'),
+                riskDrawer: document.getElementById('riskDrawer'),
+                riskClose: document.getElementById('riskClose')
+            };
+
+            buildLangMenu((code) => {
+                currentLang = String(code || 'cn');
+                try { localStorage.setItem('v12_lang', currentLang); } catch (e) {}
+                applyLanguage(currentLang);
+                loadFaqsForLang(currentLang).then(() => Renderer.renderActive());
+                setLangMenuOpen(false);
+            });
+            const langTrigger = qs('#faq-lang-trigger');
+            if (langTrigger) {
+                langTrigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const open = langTrigger.getAttribute('aria-expanded') === 'true';
+                    setLangMenuOpen(!open);
+                });
+            }
+            document.addEventListener('click', (e) => {
+                const menu = qs('#faq-lang-menu');
+                const trigger = qs('#faq-lang-trigger');
+                if (!menu || !trigger) return;
+                if (menu.contains(e.target) || trigger.contains(e.target)) return;
+                setLangMenuOpen(false);
+            });
+
+            applyLanguage(currentLang);
+
+            const Data = {
+                categories: {
+                    basic: '基础认知',
+                    revenue: '收益与节奏',
+                    organization: '组织与推广',
+                    risk: '风控与信任',
+                    conclusion: '核心金句'
+                },
+                faqs: {
+                    basic: [
+                        { q: 'W/A 是什么？', a: '一个全链上 Web4.0 协作型算力与流量系统，用规则分配价值。' },
+                        { q: 'Web4.0 与 Web3 的区别？', a: 'Web3 解决资产确权，Web4.0 侧重于大规模协作与自动执行。' },
+                        { q: 'WANT 和 XANT 有什么区别？', a: 'WANT 是生态通证与结算单位；XANT 是用于点火算力引擎的种子凭证。' },
+                        { q: '为什么要强调全链上（All-On-Chain）？', a: '所有分配与销毁均在链上执行，可审计、不可篡改。' },
+                        { q: '是否有超级权限？', a: '没有，核心合约不依赖人为干预，自动执行。' },
+                        { q: '什么是算力引擎？', a: '产出 WANT 的基础工具，也是承载收益能力的凭证。' },
+                        { q: '为什么要维护？', a: '维护确保引擎处于活跃状态，未维护或到期将失去收益资格。' },
+                        { q: '维护费用怎么算？', a: '每月消耗该引擎持仓/锁仓 WANT 的 1%。' },
+                        { q: '什么是有效算力？', a: '只有运行中、已维护且未到期的算力才算有效。' },
+                        { q: '什么是有效地址（Active Address）？', a: '至少持有并运行一台指定等级以上算力引擎的地址。' },
+                        { q: '为什么不看注册人数？', a: '注册可造假，算力需要真实成本，系统只认真实参与。' },
+                        { q: '是否中心化运营？', a: '结算与收益分配完全由链上规则执行。' },
+                        { q: '是否需要实名？', a: '协议层不强制，但部分入口可能有合规要求。' },
+                        { q: '普通人能参与吗？', a: '可以，从小算力或体验型引擎开始。' },
+                        { q: '早晚期参与者区别？', a: '早期重在结构建立，后期重在效率与规模。' }
+                    ],
+                    revenue: [
+                        { q: '为什么前期赚钱慢？', a: '静态收益前期需要复利滚动，动态收益是早期的现金流来源。' },
+                        { q: '静态慢是设计问题吗？', a: '不是，它是复利曲线，前期平缓、后期放大。' },
+                        { q: '动态收益有哪些？', a: '包含网络发展收益、星级级差奖励、全网手续费分红。' },
+                        { q: '动态每天都有吗？', a: '只要网络与算力承载有效，每日结算。' },
+                        { q: '是拉人头吗？', a: '不是，基于有效地址和业绩贡献，而非注册数。' },
+                        { q: '为什么收益到账不多？', a: '可能触发了当日动态封顶或算力承载不足。' },
+                        { q: '什么是当日动态封顶？', a: '系统限制每日可到账收益的上限。' },
+                        { q: '封顶怎么算？', a: '当日静态产出 × 1.5 × 身份系数。' },
+                        { q: '身份系数是什么？', a: '由持有运行的最高档位引擎决定。' },
+                        { q: '升级算力有什么用？', a: '提高静态产出的同时提高动态收益的承载上限。' },
+                        { q: '允许补仓追回烧伤吗？', a: '不允许，避免事后套利，保证规则公平。' },
+                        { q: '烧伤是亏损吗？', a: '不是罚款，是超出承载能力的自动作废。' },
+                        { q: '烧伤会变多吗？', a: '当网络增长快于算力承载时会增加。' },
+                        { q: '如何减少烧伤？', a: '同步升级算力、保持引擎活跃并关注封顶提示。' },
+                        { q: '可以只做动态吗？', a: '可以，但混合策略长期更稳。' },
+                        { q: '可以只做静态吗？', a: '可以，但节奏慢，错过动态杠杆。' },
+                        { q: '何时适合复投？', a: '当算力规模偏小且网络处于增长期时。' },
+                        { q: '何时适合提现？', a: '根据个人现金流需求或风险目标。' },
+                        { q: '鼓励长期持有吗？', a: '规则对长期参与者更友好，但不强制。' },
+                        { q: '收益稳定吗？', a: '无任何收益承诺，取决于规则与个人行为。' }
+                    ],
+                    organization: [
+                        { q: '20 代网体是什么？', a: '系统统计向下延展的有效网络层级上限。' },
+                        { q: '为什么限制代数？', a: '防止无限级差导致系统失衡。' },
+                        { q: '多条线有什么好处？', a: '降低单线风险，提升星级与级差空间。' },
+                        { q: '什么是级差？', a: '不同星级之间的收益差额分配。' },
+                        { q: '平级奖存在吗？', a: '以合约规则为准，通常仅限一代平级。' },
+                        { q: '倒序分红是什么？', a: '按规则倒序分配的奖励机制。' },
+                        { q: '如何成为星级达人？', a: '需满足有效地址数、业绩与算力要求。' },
+                        { q: '星级越高越好吗？', a: '等级越高，责任与承载要求也越高。' },
+                        { q: '必须地推吗？', a: '不一定，线上、内容、社群均可。' },
+                        { q: 'T1 引擎有什么用？', a: '降低体验门槛，用于引流转化。' },
+                        { q: 'T1 会被薅羊毛吗？', a: '通过低收益和短周期限制刷号成本。' },
+                        { q: '有效直推如何判定？', a: '是否真实运行并形成有效地址。' },
+                        { q: '可以送矿机给下级吗？', a: '在算力承载规则允许范围内可以。' },
+                        { q: '组织做大一定赚钱吗？', a: '必须同步提升自身承载，否则会烧伤。' },
+                        { q: '网体越大压力越大？', a: '因为动态承载责任随之放大。' },
+                        { q: '市场最重要的是什么？', a: '先结构、再算力、最后规模。' },
+                        { q: '后期新人还有机会吗？', a: '有，成熟期转化效率更高。' },
+                        { q: '大户与小户谁有优势？', a: '大户有资金，小户有执行力。' },
+                        { q: '支持跨区域吗？', a: '是的，全链上体系不分地域。' },
+                        { q: '有统一话术吗？', a: '以官方披露及商学院口径为准。' },
+                        { q: '有团队补贴吗？', a: '由激励池规则和公告决定。' },
+                        { q: '榜单如何评选？', a: '基于链上数据驱动统计。' },
+                        { q: '奖励从哪来？', a: '来自专门的激励池，不影响主产出。' },
+                        { q: '如何防作弊？', a: '资金关联分析、算力校验、链上追溯。' },
+                        { q: '烧伤的 WANT 去了哪？', a: '按规则链上销毁，不进入任何个人账户。' }
+                    ],
+                    risk: [
+                        { q: '销毁可查吗？', a: '链上透明审计。' },
+                        { q: '项目方如何获利？', a: '靠生态发展和市场占有，而非囤币。' },
+                        { q: '规则会暗改吗？', a: '核心规则上链后不可随意修改。' },
+                        { q: '参数可调吗？', a: '仅通过治理路径或既定路径调整。' },
+                        { q: '有跑路风险吗？', a: '设计上降低了人为风险，但不消除市场风险。' },
+                        { q: '合约审计了吗？', a: '以官方披露为准。' },
+                        { q: '币价谁决定？', a: '市场供需。' },
+                        { q: '会控盘吗？', a: '项目不承诺也不控制价格。' },
+                        { q: '为什么要封顶？', a: '保护系统稳定性，防止被极端行为击穿。' },
+                        { q: '封顶限制收益吗？', a: '是限制不匹配承载能力的过载收益。' },
+                        { q: '不封顶会怎样？', a: '短期爽，长期崩。' },
+                        { q: '支持治理投票吗？', a: '随治理模块上线开启。' },
+                        { q: '规则一致吗？', a: '是的，规则面前人人平等。' },
+                        { q: '人工干预结算吗？', a: '不，结算不依赖人工。' },
+                        { q: '提现受限吗？', a: '按规则和流动性情况执行。' },
+                        { q: '为什么要手续费？', a: '用于运营、激励与风控。' },
+                        { q: '手续费流向透明吗？', a: '规则化分配，链上可查。' },
+                        { q: '资金池挪用吗？', a: '核心资金流向由合约执行。' },
+                        { q: '项目能走多远？', a: '取决于规则执行力和参与者行为。' },
+                        { q: '失败风险存在吗？', a: '存在，任何市场行为都有风险。' },
+                        { q: '鼓励理性参与吗？', a: '是的，规则即风险提示。' },
+                        { q: '适合所有人吗？', a: '不，只适合理解规则的人。' },
+                        { q: '为什么不许诺未来？', a: '因为未来已经写在规则里。' },
+                        { q: '一句话概括？', a: '用规则替代承诺，用执行替代想象。' }
+                    ],
+                    conclusion: [
+                        { q: '最核心的一句话？', a: '网体决定产出，算力决定承载。' },
+                        { q: '核心价值？', a: '规则透明，执行确定。' },
+                        { q: '最容易踩的坑？', a: '只扩网体，不升算力。' },
+                        { q: '最稳策略？', a: '静态复投 + 动态扩张。' },
+                        { q: '何时该停？', a: '当你不理解规则的时候。' },
+                        { q: '何时该快？', a: '当你承载能力领先网体的时候。' },
+                        { q: '系统讨厌什么？', a: '投机与事后补救。' },
+                        { q: '系统奖励什么？', a: '提前规划与持续执行。' },
+                        { q: '卖的是什么？', a: '一套可执行的规则，而非某种币。' },
+                        { q: '夜聊总结？', a: '不许诺未来，只执行规则。' },
+                        { q: 'W/A 像什么？', a: '一个自动运行的经济操作系统。' },
+                        { q: '参与者角色？', a: '规则的执行者，而非索取者。' },
+                        { q: '长期主义在哪？', a: '短期爽点都被规则压制了。' },
+                        { q: '有人犹豫怎么办？', a: '说明还没准备好理解规则。' },
+                        { q: '最终决定权？', a: '永远在你自己。' }
+                    ]
+                }
+            };
+
+            const FAQ_CONTENT = {
+                cache: {
+                    cn: Data.faqs
+                },
+                pending: {}
+            };
+
+            const loadFaqsForLang = (lang) => {
+                const l = String(lang || 'cn');
+                if (FAQ_CONTENT.cache[l]) return Promise.resolve(FAQ_CONTENT.cache[l]);
+                if (FAQ_CONTENT.pending[l]) return FAQ_CONTENT.pending[l];
+
+                const url = `./faq-content.${l}.json`;
+                const p = fetch(url, { cache: 'no-store' })
+                    .then((r) => {
+                        if (!r.ok) throw new Error(`Failed to load faq content ${l}: ${r.status}`);
+                        return r.json();
+                    })
+                    .then((data) => {
+                        const faqs = data && data.faqs ? data.faqs : data;
+                        if (!faqs || typeof faqs !== 'object') throw new Error(`Invalid faq content ${l}`);
+                        FAQ_CONTENT.cache[l] = faqs;
+                        return faqs;
+                    })
+                    .catch((e) => {
+                        console.warn(e);
+                        return FAQ_CONTENT.cache.cn;
+                    })
+                    .finally(() => {
+                        delete FAQ_CONTENT.pending[l];
+                    });
+
+                FAQ_CONTENT.pending[l] = p;
+                return p;
+            };
+
+            const getFaqsByLang = (lang) => {
+                const l = String(lang || 'cn');
+                return FAQ_CONTENT.cache[l] || FAQ_CONTENT.cache.cn;
+            };
+
+            const Content = {
+                categoryOrder: ['basic', 'revenue', 'organization', 'risk', 'conclusion']
+            };
+
+            const State = {
+                activeCategory: 'all',
+                searchQuery: ''
+            };
+
+            const computeGlobalNumbering = () => {
+                let globalIdx = 0;
+                const faqs = getFaqsByLang(currentLang);
+                Content.categoryOrder.forEach((key) => {
+                    const arr = faqs[key] || [];
+                    arr.forEach((item) => {
+                        globalIdx += 1;
+                        item.__globalIndex = globalIdx;
+                    });
+                });
+            };
+
+            const Renderer = {
+                renderFaqList: (items) => {
+                    if (!Dom.content) return;
+                    Dom.content.innerHTML = items
+                        .map((item, idx) => {
+                            const number = String(item.__globalIndex || (idx + 1)).padStart(3, '0');
+                            return `
+                                <div class="faq-card p-6 group">
+                                    <div class="flex items-start gap-6">
+                                        <div class="flex flex-col items-center">
+                                            <span class="text-lg font-mono text-brand mb-2">Q_${number}</span>
+                                            <div class="w-px h-12 bg-white/10 group-hover:bg-brand/40 transition-colors"></div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-2xl font-black italic mb-4 group-hover:text-brand transition-colors">${item.q}</h4>
+                                            <div class="industrial-node p-6 bg-white/[0.02]">
+                                                <p class="text-white/50 text-base leading-relaxed italic">${item.a}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        .join('');
+                },
+                renderActive: () => {
+                    computeGlobalNumbering();
+                    const q = String(State.searchQuery || '').trim();
+                    const hasQuery = Boolean(q);
+                    const faqs = getFaqsByLang(currentLang);
+                    const baseItems = hasQuery ? Content.categoryOrder.flatMap((k) => faqs[k] || []) : (State.activeCategory === 'all' ? Content.categoryOrder.flatMap((k) => faqs[k] || []) : (faqs[State.activeCategory] || []));
+                    const qLower = q.toLowerCase();
+                    const filtered = q ? baseItems.filter((item) => {
+                        const qq = String(item.q || '').toLowerCase();
+                        const aa = String(item.a || '').toLowerCase();
+                        return qq.includes(qLower) || aa.includes(qLower);
+                    }) : baseItems;
+                    Renderer.renderFaqList(filtered);
+                }
+            };
+
+            const Interaction = {
+                initCategories: () => {
+                    if (!Dom.categories || !Dom.categories.length) return;
+                    Dom.categories.forEach((item) => {
+                        item.addEventListener('click', () => {
+                            Dom.categories.forEach((c) => c.classList.remove('active'));
+                            item.classList.add('active');
+                            if (Dom.main) Dom.main.style.opacity = '0.5';
+                            State.activeCategory = item.getAttribute('data-category') || 'all';
+                            Renderer.renderActive();
+                            setTimeout(() => {
+                                if (Dom.main) Dom.main.style.opacity = '1';
+                            }, 200);
+                        });
+                    });
+                },
+                initSearch: () => {
+                    if (!Dom.searchInput) return;
+                    let searchT = 0;
+                    const onSearch = () => {
+                        State.searchQuery = Dom.searchInput.value || '';
+                        Renderer.renderActive();
+                    };
+                    Dom.searchInput.addEventListener('input', () => {
+                        clearTimeout(searchT);
+                        searchT = setTimeout(onSearch, 80);
+                    });
+                    Dom.searchInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            Dom.searchInput.value = '';
+                            onSearch();
+                        }
+                    });
+                },
+                initRiskDrawer: () => {
+                    let shiftRaf = 0;
+
+                    try {
+                        if (Dom.riskOverlay && Dom.riskOverlay.parentElement !== document.body) {
+                            document.body.appendChild(Dom.riskOverlay);
+                        }
+                        if (Dom.riskDrawer && Dom.riskDrawer.parentElement !== document.body) {
+                            document.body.appendChild(Dom.riskDrawer);
+                        }
+                    } catch (e) {}
+
+                    const updateShift = () => {
+                        try {
+                            document.documentElement.style.setProperty('--faq-drawer-shift', '0px');
+                        } catch (e) {}
+                    };
+
+                    const requestShiftUpdate = () => {
+                        try {
+                            if (shiftRaf) return;
+                            shiftRaf = requestAnimationFrame(() => {
+                                shiftRaf = 0;
+                                updateShift();
+                            });
+                        } catch (e) {}
+                    };
+
+                    const openRisk = () => {
+                        if (Dom.riskOverlay) Dom.riskOverlay.classList.add('active');
+                        if (Dom.riskDrawer) Dom.riskDrawer.classList.add('active');
+                        try {
+                            document.body.classList.add('drawer-open');
+                            requestAnimationFrame(() => {
+                                requestShiftUpdate();
+                                setTimeout(requestShiftUpdate, 0);
+                            });
+                        } catch (e) {}
+                        if (Dom.main) Dom.main.style.overflow = 'hidden';
+                    };
+                    const closeRisk = () => {
+                        if (Dom.riskOverlay) Dom.riskOverlay.classList.remove('active');
+                        if (Dom.riskDrawer) Dom.riskDrawer.classList.remove('active');
+                        try {
+                            document.body.classList.remove('drawer-open');
+                            document.documentElement.style.setProperty('--faq-drawer-shift', '0px');
+                        } catch (e) {}
+                        if (Dom.main) Dom.main.style.overflow = '';
+                    };
+
+                    window.addEventListener('resize', () => {
+                        try {
+                            if (!document.body.classList.contains('drawer-open')) return;
+                            requestShiftUpdate();
+                        } catch (e) {}
+                    });
+
+                    if (Dom.riskTrigger) Dom.riskTrigger.addEventListener('click', openRisk);
+                    if (Dom.riskClose) Dom.riskClose.addEventListener('click', closeRisk);
+                    if (Dom.riskOverlay) Dom.riskOverlay.addEventListener('click', closeRisk);
+                    window.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') closeRisk();
+                    });
+                }
+            };
+
+            const Scale = {
+                scaleRaf: 0,
+                update: () => {
+                    const designWidth = 1440;
+                    const viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                    let scale = Math.min(1, viewportWidth / designWidth);
+                    scale = Math.round(scale * 10000) / 10000;
+                    document.documentElement.style.setProperty('--faq-scale', String(scale));
+                },
+                requestUpdate: () => {
+                    if (Scale.scaleRaf) return;
+                    Scale.scaleRaf = requestAnimationFrame(() => {
+                        Scale.scaleRaf = 0;
+                        Scale.update();
+                    });
+                },
+                waitForFonts: () => {
+                    const fonts = document.fonts;
+                    if (!fonts || !fonts.ready) return Promise.resolve();
+                    return Promise.race([
+                        fonts.ready,
+                        new Promise((resolve) => setTimeout(resolve, 800))
+                    ]);
+                },
+                waitForStableViewport: () => {
+                    return new Promise((resolve) => {
+                        let lastW = 0;
+                        let stable = 0;
+                        let frames = 0;
+                        const maxFrames = 60;
+                        const tick = () => {
+                            frames += 1;
+                            const w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                            const wRounded = Math.round(w * 100) / 100;
+                            if (wRounded === lastW) stable += 1;
+                            else stable = 0;
+                            lastW = wRounded;
+                            if (stable >= 2 || frames >= maxFrames) {
+                                resolve();
+                                return;
+                            }
+                            requestAnimationFrame(tick);
+                        };
+                        requestAnimationFrame(tick);
+                    });
+                },
+                init: () => {
+                    window.addEventListener('resize', Scale.requestUpdate);
+                    if (window.visualViewport) {
+                        window.visualViewport.addEventListener('resize', Scale.requestUpdate);
+                    }
+                    Scale.update();
+                    Promise.all([Scale.waitForFonts(), Scale.waitForStableViewport()]).then(() => {
+                        Scale.update();
+                        if (Dom.wrapper) Dom.wrapper.style.visibility = 'visible';
+                        Scale.requestUpdate();
+                        try {
+                            requestAnimationFrame(() => {
+                                setTimeout(() => {
+                                    try { document.body.classList.add('faq-ready'); } catch (e) {}
+                                }, 60);
+                            });
+                        } catch (e) {}
+                    });
+                }
+            };
+
+            computeGlobalNumbering();
+            Interaction.initCategories();
+            Interaction.initSearch();
+            Interaction.initRiskDrawer();
+            loadFaqsForLang(currentLang).then(() => Renderer.renderActive());
+            Scale.init();
+        });
+    </script>
+</body>
+</html>

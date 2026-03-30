@@ -1,0 +1,411 @@
+{
+  "lang": "vi",
+  "faqs": {
+    "basic": [
+      {
+        "q": "W/A là gì?",
+        "a": "Một hệ thống Web4 “All-on-chain” kết nối “công suất tính toán (engine)” với “traffic mạng”, và phân phối giá trị theo các quy tắc."
+      },
+      {
+        "q": "Web4 khác Web3 ở điểm nào?",
+        "a": "Web3 tập trung vào “quyền sở hữu tài sản”, còn Web4 tập trung vào “hợp tác quy mô lớn theo mạng” và “thực thi tự động theo luật chơi”."
+      },
+      {
+        "q": "WANT và XANT khác nhau thế nào?",
+        "a": "WANT là token hệ sinh thái và đơn vị thanh toán/đối soát. XANT là credit/điểm khởi tạo để kích hoạt engine."
+      },
+      {
+        "q": "Vì sao nhấn mạnh All-on-chain?",
+        "a": "Vì tính toán, phân phối và Burn đều chạy on-chain: minh bạch, kiểm chứng được, và (đối với luật cốt lõi) khó/không thể sửa tùy ý."
+      },
+      {
+        "q": "Có “siêu quyền hạn” (admin key) không?",
+        "a": "Không. Quy tắc cốt lõi tự chạy on-chain, không phụ thuộc can thiệp con người."
+      },
+      {
+        "q": "Engine là gì?",
+        "a": "Đơn vị cơ bản để tạo WANT, đồng thời là “chứng chỉ” về Capacity (khả năng nhận/Carry lợi nhuận)."
+      },
+      {
+        "q": "Tại sao cần bảo trì?",
+        "a": "Bảo trì để engine luôn ở trạng thái hoạt động. Engine không bảo trì hoặc hết hạn sẽ mất quyền nhận lợi nhuận."
+      },
+      {
+        "q": "Phí bảo trì tính thế nào?",
+        "a": "Thông thường là 1%/tháng trên lượng WANT liên quan đến engine (theo quy tắc hợp đồng)."
+      },
+      {
+        "q": "Công suất tính toán “hiệu lực” là gì?",
+        "a": "Chỉ engine đang chạy, đã bảo trì và chưa hết hạn mới được tính."
+      },
+      {
+        "q": "“Địa chỉ hiệu lực/Active Address” là gì?",
+        "a": "Địa chỉ sở hữu và vận hành ít nhất 1 engine theo ngưỡng quy định."
+      },
+      {
+        "q": "Vì sao không đếm số lượt đăng ký?",
+        "a": "Đăng ký có thể “ảo”, còn chạy engine có chi phí thật. Hệ thống chỉ công nhận sự tham gia thật."
+      },
+      {
+        "q": "Đây có phải vận hành tập trung không?",
+        "a": "Không. Đối soát và phân phối lợi nhuận được cưỡng chế bằng quy tắc on-chain."
+      },
+      {
+        "q": "Có bắt buộc KYC không?",
+        "a": "Ở cấp giao thức thì không bắt buộc, nhưng một số cổng vào (platform) có thể yêu cầu tuân thủ."
+      },
+      {
+        "q": "Người mới có thể tham gia không?",
+        "a": "Có. Bạn có thể bắt đầu từ engine nhỏ hoặc engine trải nghiệm."
+      },
+      {
+        "q": "Người tham gia sớm và muộn khác nhau gì?",
+        "a": "Giai đoạn sớm ưu tiên “xây cấu trúc”, giai đoạn muộn ưu tiên “hiệu suất & quy mô”."
+      }
+    ],
+    "revenue": [
+      {
+        "q": "Vì sao giai đoạn đầu lợi nhuận trông “chậm”?",
+        "a": "Lợi nhuận tĩnh đi theo đường cong lãi kép (đầu chậm, về sau tăng tốc). Lợi nhuận động thường tạo dòng tiền nhanh hơn."
+      },
+      {
+        "q": "Lợi nhuận tĩnh chậm có phải lỗi thiết kế không?",
+        "a": "Không. Đó là bản chất của lãi kép: giai đoạn đầu “phẳng”, về sau mới “bật lên”."
+      },
+      {
+        "q": "Lợi nhuận động gồm những gì?",
+        "a": "Ví dụ: thưởng tăng trưởng mạng, thưởng chênh lệch theo Star Tier, và cổ tức từ tổng phí của toàn mạng."
+      },
+      {
+        "q": "Lợi nhuận động có trả hằng ngày không?",
+        "a": "Có thể trả theo ngày nếu mạng hợp lệ và Capacity của bạn đủ để “nhận/Carry”."
+      },
+      {
+        "q": "Đây có phải mô hình đa cấp không?",
+        "a": "Không. Hệ thống dựa trên “địa chỉ hiệu lực” và đóng góp thực, không phải số lượt đăng ký."
+      },
+      {
+        "q": "Vì sao số tiền được ghi có (credit) ít?",
+        "a": "Thường do chạm “cap động theo ngày” hoặc Capacity không đủ để Carry hết."
+      },
+      {
+        "q": "Cap động theo ngày là gì?",
+        "a": "Quy tắc giới hạn mức lợi nhuận động tối đa có thể được credit mỗi ngày."
+      },
+      {
+        "q": "Cap được tính như thế nào?",
+        "a": "Sản lượng tĩnh/ngày × 1.5 × hệ số định danh."
+      },
+      {
+        "q": "Hệ số định danh là gì?",
+        "a": "Hệ số nhân được quyết định bởi engine tier cao nhất bạn đang nắm giữ và đang vận hành."
+      },
+      {
+        "q": "Nâng cấp có tác dụng gì?",
+        "a": "Vừa tăng sản lượng tĩnh/ngày, vừa tăng trần nhận lợi nhuận động (Capacity/Carry limit)."
+      },
+      {
+        "q": "Có thể “bù lại” phần đã Burn về sau không?",
+        "a": "Không. Điều này nhằm tránh arbitrage sau và giữ sự công bằng của quy tắc."
+      },
+      {
+        "q": "Burn có phải là bị “phạt” không?",
+        "a": "Không phải phạt. Phần vượt quá Capacity sẽ bị vô hiệu hóa tự động theo quy tắc."
+      },
+      {
+        "q": "Burn có thể tăng không?",
+        "a": "Có, nếu mạng tăng trưởng nhanh hơn tốc độ mở rộng Capacity."
+      },
+      {
+        "q": "Làm sao để giảm Burn?",
+        "a": "Nâng Capacity đồng bộ với tăng trưởng mạng, giữ engine ở trạng thái hoạt động, và theo dõi cảnh báo/cap."
+      },
+      {
+        "q": "Chỉ tập trung lợi nhuận động được không?",
+        "a": "Được, nhưng về dài hạn chiến lược kết hợp tĩnh + động thường ổn định hơn."
+      },
+      {
+        "q": "Chỉ tập trung lợi nhuận tĩnh được không?",
+        "a": "Được, nhưng nhịp độ sẽ chậm hơn và dễ bỏ lỡ đòn bẩy từ lợi nhuận động."
+      },
+      {
+        "q": "Khi nào nên tái đầu tư?",
+        "a": "Khi Capacity còn nhỏ và mạng đang ở pha tăng trưởng."
+      },
+      {
+        "q": "Khi nào nên rút?",
+        "a": "Tùy nhu cầu dòng tiền cá nhân và mức chịu rủi ro của bạn."
+      },
+      {
+        "q": "Có khuyến khích nắm giữ dài hạn không?",
+        "a": "Quy tắc có lợi cho người tham gia dài hạn, nhưng không bắt buộc."
+      },
+      {
+        "q": "Lợi nhuận có ổn định không?",
+        "a": "Không có cam kết lợi nhuận. Kết quả phụ thuộc vào quy tắc và hành vi của người tham gia."
+      }
+    ],
+    "organization": [
+      {
+        "q": "“Mạng 20 thế hệ (20-generation)” là gì?",
+        "a": "Giao thức chỉ đếm độ sâu mạng hiệu lực theo chiều “đi xuống” tối đa 20 thế hệ."
+      },
+      {
+        "q": "Vì sao phải giới hạn độ sâu/cấp?",
+        "a": "Để tránh chênh lệch (gap) tích lũy vô hạn làm hệ thống incentive mất ổn định."
+      },
+      {
+        "q": "Lợi ích của việc làm nhiều nhánh (multi-line)?",
+        "a": "Giảm rủi ro phụ thuộc một nhánh, đồng thời tăng cơ hội đạt Star Tier và “giữ” được chênh lệch."
+      },
+      {
+        "q": "“Chênh lệch” là gì?",
+        "a": "Cơ chế phân bổ phần chênh lệch lợi nhuận giữa các Star Tier khác nhau theo quy tắc giao thức."
+      },
+      {
+        "q": "Có thưởng “cùng cấp” (peer) không?",
+        "a": "Tùy quy tắc hợp đồng; thường chỉ áp dụng đến một số thế hệ nhất định (ví dụ: thế hệ 1)."
+      },
+      {
+        "q": "“Phân phối ngược” là gì?",
+        "a": "Cơ chế trả thưởng theo thứ tự ngược, được thực thi theo quy tắc on-chain."
+      },
+      {
+        "q": "Làm sao để lên Star Tier?",
+        "a": "Cần số lượng địa chỉ hiệu lực, hiệu suất (performance), và yêu cầu Capacity của chính bạn đạt ngưỡng."
+      },
+      {
+        "q": "Star Tier cao hơn luôn tốt hơn?",
+        "a": "Tier cao thường có lợi hơn, nhưng trách nhiệm Carry và yêu cầu Capacity cũng cao hơn."
+      },
+      {
+        "q": "Có bắt buộc làm offline kéo người không?",
+        "a": "Không bắt buộc. Bạn có thể làm online, làm nội dung, hoặc vận hành cộng đồng."
+      },
+      {
+        "q": "Engine T1 dùng để làm gì?",
+        "a": "Hạ rào cản tham gia và tăng hiệu quả onboarding/chuyển đổi."
+      },
+      {
+        "q": "T1 có thể bị “farm” không?",
+        "a": "Do lợi nhuận thấp và chu kỳ ngắn, việc farm hiệu quả sẽ khó."
+      },
+      {
+        "q": "Thế nào là “giới thiệu hiệu lực”?",
+        "a": "Xem tài khoản được giới thiệu có vận hành engine thật và trở thành địa chỉ hiệu lực hay không."
+      },
+      {
+        "q": "Có thể tặng/chuyển engine cho downline không?",
+        "a": "Có, nhưng phải tuân theo quy tắc Capacity/Carry của giao thức."
+      },
+      {
+        "q": "Tổ chức lớn hơn = lợi nhuận nhiều hơn tự động?",
+        "a": "Không. Nếu bạn không nâng Capacity theo kịp, phần vượt khả năng nhận có thể bị Burn/vô hiệu."
+      },
+      {
+        "q": "Mạng lớn hơn thì áp lực cũng lớn hơn?",
+        "a": "Có. Trách nhiệm Carry lợi nhuận động sẽ tăng theo mạng."
+      },
+      {
+        "q": "Điều quan trọng nhất khi tăng trưởng là gì?",
+        "a": "Cấu trúc trước, Capacity thứ hai, quy mô là cuối cùng."
+      },
+      {
+        "q": "Người tham gia muộn còn cơ hội không?",
+        "a": "Có. Ở giai đoạn trưởng thành, hiệu quả chuyển đổi có thể cao hơn."
+      },
+      {
+        "q": "Cá voi vs vốn nhỏ: ai lợi thế hơn?",
+        "a": "Cá voi mạnh về vốn; vốn nhỏ mạnh về tốc độ triển khai và tính linh hoạt."
+      },
+      {
+        "q": "Có thể làm xuyên khu vực không?",
+        "a": "Có. Hệ thống All-on-chain gần như không bị giới hạn bởi địa lý."
+      },
+      {
+        "q": "Có guideline truyền thông chính thức không?",
+        "a": "Hãy bám theo công bố/tài liệu chính thức và guideline của academy (nếu có)."
+      },
+      {
+        "q": "Có trợ cấp cho team không?",
+        "a": "Nếu có, sẽ theo quy tắc incentive pool và thông báo."
+      },
+      {
+        "q": "Ranking được tính như thế nào?",
+        "a": "Tự động tính dựa trên dữ liệu on-chain."
+      },
+      {
+        "q": "Phần thưởng đến từ đâu?",
+        "a": "Từ incentive pool riêng, không làm giảm “đầu ra” chính."
+      },
+      {
+        "q": "Ngăn gian lận như thế nào?",
+        "a": "Phân tích tương quan dòng tiền, kiểm chứng Capacity, và theo dõi on-chain."
+      },
+      {
+        "q": "WANT bị Burn đi đâu?",
+        "a": "Bị Burn on-chain theo quy tắc và không đi vào bất kỳ tài khoản cá nhân nào."
+      }
+    ],
+    "risk": [
+      {
+        "q": "Có thể kiểm chứng Burn on-chain không?",
+        "a": "Có. Mọi Burn đều minh bạch và kiểm chứng được on-chain."
+      },
+      {
+        "q": "Team/dự án hưởng lợi từ đâu?",
+        "a": "Không phải từ việc “gom coin”, mà từ tăng trưởng hệ sinh thái và thị phần sử dụng."
+      },
+      {
+        "q": "Quy tắc có thể bị đổi “lén” không?",
+        "a": "Luật cốt lõi là on-chain và bất biến. Nếu có thay đổi, phải đi qua cơ chế quản trị/upgrade đã được định nghĩa."
+      },
+      {
+        "q": "Có thể điều chỉnh tham số không?",
+        "a": "Chỉ có thể qua governance hoặc lộ trình upgrade định trước."
+      },
+      {
+        "q": "Có rủi ro rug pull không?",
+        "a": "Thiết kế giảm rủi ro “con người can thiệp”, nhưng không thể loại bỏ rủi ro thị trường."
+      },
+      {
+        "q": "Hợp đồng đã audit chưa?",
+        "a": "Vui lòng theo dõi công bố/tài liệu chính thức."
+      },
+      {
+        "q": "Ai quyết định giá token?",
+        "a": "Thị trường (cung – cầu)."
+      },
+      {
+        "q": "Team có thao túng hoặc cam kết giá không?",
+        "a": "Không cam kết và không kiểm soát giá."
+      },
+      {
+        "q": "Vì sao cần cap (giới hạn)?",
+        "a": "Để giữ ổn định hệ thống, tránh hành vi cực đoan làm incentive sụp."
+      },
+      {
+        "q": "Cap có “giới hạn lợi nhuận” không?",
+        "a": "Cap giới hạn phần trả vượt quá Capacity để tránh quá tải hệ thống."
+      },
+      {
+        "q": "Nếu không có cap thì sao?",
+        "a": "Ngắn hạn có thể “đẹp”, nhưng dài hạn dễ dẫn tới sụp đổ."
+      },
+      {
+        "q": "Có bỏ phiếu governance không?",
+        "a": "Khi module governance được triển khai/đưa vào hoạt động thì sẽ có."
+      },
+      {
+        "q": "Quy tắc có áp dụng công bằng không?",
+        "a": "Có. Quy tắc áp dụng nhất quán cho mọi người."
+      },
+      {
+        "q": "Có thể can thiệp thủ công vào đối soát không?",
+        "a": "Không. Đối soát là rule-based và không phụ thuộc thao tác thủ công."
+      },
+      {
+        "q": "Việc rút có thể bị giới hạn không?",
+        "a": "Tùy quy tắc giao thức và điều kiện thanh khoản."
+      },
+      {
+        "q": "Vì sao có phí giao dịch?",
+        "a": "Để vận hành, tạo incentive và kiểm soát rủi ro."
+      },
+      {
+        "q": "Phân phối phí có minh bạch không?",
+        "a": "Minh bạch. Phân phối theo quy tắc và có thể kiểm chứng on-chain."
+      },
+      {
+        "q": "Pool quỹ có thể bị lạm dụng không?",
+        "a": "Dòng tiền cốt lõi được thực thi theo quy tắc bằng hợp đồng."
+      },
+      {
+        "q": "Giao thức có thể đi xa tới đâu?",
+        "a": "Phụ thuộc vào việc thực thi quy tắc và hành vi người tham gia."
+      },
+      {
+        "q": "Có rủi ro thất bại không?",
+        "a": "Có. Bất kỳ hệ thống thị trường nào cũng có rủi ro."
+      },
+      {
+        "q": "Có khuyến nghị tham gia “hợp lý” không?",
+        "a": "Có. Bản thân quy tắc đã là “công bố rủi ro”."
+      },
+      {
+        "q": "Có phù hợp với tất cả mọi người không?",
+        "a": "Không. Chỉ phù hợp với người hiểu và chấp nhận được quy tắc."
+      },
+      {
+        "q": "Vì sao không hứa hẹn tương lai?",
+        "a": "Vì kết quả được quyết định bởi quy tắc, không phải lời hứa."
+      },
+      {
+        "q": "Tóm tắt một câu?",
+        "a": "Thay lời hứa bằng quy tắc, thay tưởng tượng bằng hành động."
+      }
+    ],
+    "conclusion": [
+      {
+        "q": "Cốt lõi một câu là gì?",
+        "a": "“Mạng quyết định đầu ra; Capacity quyết định giới hạn Carry.”"
+      },
+      {
+        "q": "Giá trị cốt lõi?",
+        "a": "Quy tắc minh bạch, thực thi theo tính quyết định."
+      },
+      {
+        "q": "Sai lầm phổ biến nhất?",
+        "a": "Chỉ mở rộng mạng nhưng không nâng Capacity."
+      },
+      {
+        "q": "Chiến lược ổn định nhất?",
+        "a": "Tái đầu tư tĩnh + mở rộng động."
+      },
+      {
+        "q": "Khi nào nên dừng?",
+        "a": "Khi bạn cảm thấy mình “chưa hiểu luật chơi”."
+      },
+      {
+        "q": "Khi nào nên tăng tốc?",
+        "a": "Khi nâng cấp Capacity của bạn đang “đi trước” tốc độ tăng trưởng của mạng."
+      },
+      {
+        "q": "Hệ thống không thích gì?",
+        "a": "Đầu cơ và “chữa cháy” sau."
+      },
+      {
+        "q": "Hệ thống thưởng gì?",
+        "a": "Thiết kế trước và thực thi nhất quán."
+      },
+      {
+        "q": "Thực ra “bán” cái gì?",
+        "a": "Không phải câu chuyện về coin, mà là một bộ quy tắc có thể thực thi."
+      },
+      {
+        "q": "Tóm tắt cuộc trò chuyện buổi tối?",
+        "a": "Không hứa tương lai. Chỉ thực thi quy tắc."
+      },
+      {
+        "q": "W/A giống gì?",
+        "a": "Một hệ điều hành kinh tế tự chạy."
+      },
+      {
+        "q": "Vai trò của người tham gia?",
+        "a": "Người thực thi quy tắc, không phải người “đòi kết quả”."
+      },
+      {
+        "q": "Tinh thần dài hạn nằm ở đâu?",
+        "a": "Niềm vui ngắn hạn bị “nén” bởi quy tắc; kỷ luật và sự bền bỉ dài hạn được thưởng."
+      },
+      {
+        "q": "Nếu ai đó do dự?",
+        "a": "Thường là dấu hiệu họ chưa sẵn sàng để hiểu quy tắc."
+      },
+      {
+        "q": "Quyết định cuối cùng?",
+        "a": "Luôn là bạn."
+      }
+    ]
+  }
+}

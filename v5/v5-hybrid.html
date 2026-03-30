@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="filename" content="v5-hybrid.html">
+  <title>W/A HUB 2026 - V5 Hybrid (V9 + V12 + V16)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: '#050505',
+            brand: '#00FFD1',
+            accent: '#BBFF00',
+            surface: '#0F0F0F',
+            panel: 'rgba(20, 20, 20, 0.78)',
+            border: 'rgba(255,255,255,0.08)'
+          },
+          fontFamily: {
+            sans: ['Noto Sans SC', 'Plus Jakarta Sans', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          },
+          animation: {
+            'glow-pulse': 'glow 4s ease-in-out infinite',
+            'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            glow: { '0%, 100%': { opacity: 0.25 }, '50%': { opacity: 0.55 } },
+            'pulse-dot': {
+              '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+              '50%': { opacity: 0.5, transform: 'scale(0.8)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --master-width: 1440px;
+      --brand-glow: rgba(0, 255, 209, 0.14);
+      --neon-glow: 0 0 22px rgba(0, 255, 209, 0.28);
+    }
+
+    body {
+      background: #050505;
+      color: #fff;
+      overflow-x: hidden;
+      margin: 0;
+      font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* V16: 1440 宽度缩放引擎 */
+    .viewport-guard {
+      width: var(--master-width);
+      margin: 0 auto;
+      position: relative;
+      transform-origin: top center;
+      min-height: 100vh;
+      padding-bottom: 120px;
+      visibility: hidden;
+    }
+
+    /* V16: 网格与噪点 */
+    .cyber-grid {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at 50% 35%, black 24%, transparent 80%);
+    }
+
+    .visual-noise {
+      position: fixed;
+      inset: 0;
+      background: url('https://grainy-gradients.vercel.app/noise.svg');
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* V9: 玻璃质感 panel */
+    .glass-module {
+      background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(18px);
+      transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+    }
+    .glass-module:hover {
+      border-color: rgba(0, 255, 209, 0.28);
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-6px);
+      box-shadow: 0 22px 46px rgba(0,0,0,0.50);
+    }
+
+    /* V12: 参数化卡片 */
+    .p-card {
+      background: rgba(8, 8, 8, 0.62);
+      border: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+      clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+    }
+    .p-card:hover {
+      border-color: #00FFD1;
+      background: rgba(12, 12, 12, 0.82);
+      transform: translateY(-5px);
+      box-shadow: var(--neon-glow);
+    }
+    .p-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 95%, rgba(0, 255, 209, 0.10) 100%);
+      pointer-events: none;
+    }
+
+    /* V9: 冲击力 hero 标题 */
+    .hero-title {
+      font-size: 140px;
+      font-weight: 900;
+      line-height: 0.82;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+      font-style: italic;
+    }
+
+    /* V16: 侧边控制中心 */
+    #side-hub {
+      transform: translateX(100%);
+      transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    #side-hub.active { transform: translateX(0); }
+
+    /* scroll bar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 255, 209, 0.22); border-radius: 10px; }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <div class="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
+  <div class="visual-noise"></div>
+
+  <!-- V16: Side Hub -->
+  <div id="side-hub" class="fixed top-0 right-0 w-[520px] h-full bg-[#070707] z-[200] border-l border-white/10 shadow-3xl p-12 overflow-y-auto">
+    <div class="flex justify-between items-center mb-12 px-2">
+      <div>
+        <h3 class="font-mono text-brand text-xs tracking-[0.4em] uppercase">Control Center</h3>
+        <p class="text-white/30 text-[10px] mt-2 italic">Switch localization + quick actions</p>
+      </div>
+      <button id="closeHub" class="w-10 h-10 border border-white/5 rounded-full flex items-center justify-center hover:bg-white hover:text-dark transition-all">
+        <i data-lucide="x-circle" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="space-y-6">
+      <div class="p-card p-8 cursor-pointer border border-brand/60 bg-brand/5">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-[10px] font-mono text-brand tracking-[0.35em] uppercase mb-3">NODE_01_CN</div>
+            <div class="text-3xl font-black italic uppercase">简体中文</div>
+            <p class="text-[11px] text-brand/40 mt-4 leading-relaxed">Core copy is optimized for localized deployment.</p>
+          </div>
+          <div class="w-2 h-2 rounded-full bg-brand animate-pulse-dot shadow-[0_0_10px_#00FFD1] mt-2"></div>
+        </div>
+      </div>
+
+      <div class="glass-module p-8 cursor-pointer">
+        <div class="text-3xl font-black italic uppercase text-white/80">English</div>
+        <p class="text-[11px] text-white/25 mt-3 italic">US / GLOBAL</p>
+      </div>
+
+      <div class="glass-module p-8 cursor-pointer">
+        <div class="text-3xl font-black italic uppercase text-white/80">日本語</div>
+        <p class="text-[11px] text-white/25 mt-3 italic">JP / EAST</p>
+      </div>
+
+      <div class="glass-module p-8 cursor-pointer">
+        <div class="text-3xl font-black italic uppercase text-white/80">繁体中文</div>
+        <p class="text-[11px] text-white/25 mt-3 italic">HK / TW</p>
+      </div>
+
+      <div class="mt-10 border-t border-white/10 pt-8">
+        <div class="text-[10px] font-mono text-white/30 tracking-[0.35em] uppercase mb-6">Quick Links</div>
+        <div class="grid grid-cols-2 gap-4">
+          <a href="#modules" class="glass-module p-6 hover:bg-brand hover:text-dark transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black tracking-widest uppercase">Modules</span>
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            </div>
+          </a>
+          <a href="#resources" class="glass-module p-6 hover:bg-brand hover:text-dark transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black tracking-widest uppercase">Resources</span>
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewport-guard" id="main-frame">
+    <!-- Header: V16 结构 + V9 质感 -->
+    <header class="h-24 px-12 flex items-center justify-between sticky top-0 z-[120] bg-black/45 backdrop-blur-2xl border-b border-white/5">
+      <div class="flex items-center gap-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-brand rounded-sm rotate-45 flex items-center justify-center">
+            <div class="w-5 h-5 border-2 border-dark -rotate-45"></div>
+          </div>
+          <div>
+            <div class="text-2xl font-black italic tracking-tighter">W/A HUB</div>
+            <div class="text-[8px] font-mono text-white/30 tracking-[4px]">V5_HYBRID_LOCAL</div>
+          </div>
+        </div>
+        <nav class="hidden xl:flex items-center gap-8 font-mono text-[10px] uppercase tracking-[0.32em] text-white/45">
+          <a href="#" class="text-white border-b-2 border-brand pb-1">Mainframe</a>
+          <a href="#modules" class="hover:text-white transition-colors">Modules</a>
+          <a href="#resources" class="hover:text-white transition-colors">Resources</a>
+          <a href="#footer" class="hover:text-white transition-colors">About</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button id="langTrigger" class="h-12 px-6 border border-white/10 flex items-center gap-3 group hover:border-brand/50 transition-all">
+          <i data-lucide="languages" class="w-4 h-4 text-brand"></i>
+          <span class="text-[10px] font-bold tracking-widest italic group-hover:text-brand transition-colors">MULTI_LANG</span>
+        </button>
+        <a href="./index.html" class="h-12 px-5 glass-module flex items-center gap-3">
+          <i data-lucide="corner-up-left" class="w-4 h-4 text-white/60"></i>
+          <span class="text-[10px] font-mono uppercase tracking-widest text-white/60">Back</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero: V9 冲击力 + V12 信息排布 -->
+    <main class="px-12 pt-16 pb-32">
+      <section class="relative overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-[620px] h-[620px] bg-brand/10 blur-[120px]"></div>
+        <div class="absolute -bottom-64 -left-64 w-[720px] h-[720px] bg-accent/10 blur-[160px]"></div>
+
+        <div class="grid grid-cols-12 gap-12 items-end">
+          <div class="col-span-9">
+            <div class="inline-flex items-center gap-3 mb-8 bg-brand/5 border border-brand/20 px-3 py-1 w-fit">
+              <span class="animate-pulse w-2 h-2 bg-brand rounded-full"></span>
+              <span class="text-[10px] font-mono text-brand font-bold tracking-[2px]">2026_INTERFACE_PROTOCOL</span>
+            </div>
+            <h1 class="hero-title">
+              赋能品牌<br/>
+              <span class="text-transparent" style="-webkit-text-stroke: 1.5px rgba(255,255,255,0.78)">创造</span>
+              <span class="text-brand">卓越</span>
+            </h1>
+            <p class="mt-10 text-lg text-white/45 max-w-2xl font-light leading-relaxed italic">
+              V5 Hybrid 把 V9 的冲击力、V12 的参数化边界语言、V16 的控制中心结构融合在同一套 1440 构图系统中。
+            </p>
+            <div class="mt-12 flex gap-6">
+              <a href="#modules" class="px-10 py-5 bg-brand text-dark font-black italic uppercase tracking-widest hover:brightness-110 transition-all rounded-sm">
+                快速开始 <i data-lucide="arrow-right" class="inline ml-2 w-5 h-5"></i>
+              </a>
+              <a href="#resources" class="px-10 py-5 border border-white/20 text-white font-black italic uppercase tracking-widest hover:bg-white/5 transition-all rounded-sm">
+                资源推荐
+              </a>
+            </div>
+          </div>
+
+          <div class="col-span-3 text-right">
+            <div class="p-card p-8">
+              <div class="flex items-start justify-between mb-10">
+                <i data-lucide="activity" class="text-brand w-6 h-6"></i>
+                <div class="flex flex-col items-end">
+                  <span class="text-[10px] font-mono text-white/20 font-bold">STATUS: ACTIVE</span>
+                  <div class="w-2 h-2 rounded-full bg-brand animate-pulse-dot shadow-[0_0_10px_#00FFD1] mt-2"></div>
+                </div>
+              </div>
+              <div class="text-4xl font-black italic mb-2 tracking-tighter">88.42%</div>
+              <div class="text-[10px] font-mono text-white/30 uppercase mb-6 tracking-widest">Adaptive_Sync_Ratio</div>
+              <div class="flex gap-1 h-1 shadow-inner">
+                <div class="w-2/3 bg-brand transition-all duration-1000"></div>
+                <div class="flex-1 bg-white/10"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-10 mt-20 border-t border-white/5 pt-12">
+          <div>
+            <div class="text-5xl font-mono font-bold">100K+</div>
+            <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Active_Users</div>
+          </div>
+          <div>
+            <div class="text-5xl font-mono font-bold">30%+</div>
+            <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Revenue_Growth</div>
+          </div>
+          <div>
+            <div class="text-5xl font-mono font-bold">24/7</div>
+            <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Technical_Sync</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modules: V12 参数化 + V16 bento 结构 -->
+      <section id="modules" class="mt-28">
+        <div class="flex items-end justify-between mb-12">
+          <div>
+            <div class="text-[11px] font-mono text-brand tracking-[0.45em] uppercase mb-4">PROJECT MODULES</div>
+            <h2 class="text-5xl font-black italic tracking-tighter">核心模块</h2>
+            <p class="text-white/35 mt-3">先建立可信，再理解规则与计划</p>
+          </div>
+          <div class="hidden lg:flex gap-3">
+            <a href="#resources" class="glass-module px-6 py-3 text-[10px] font-mono uppercase tracking-widest text-white/55 hover:text-white">Jump Resources</a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-8">
+          <div class="col-span-7 p-card p-12 h-[420px] relative overflow-hidden group">
+            <div class="absolute -right-24 -top-24 w-[420px] h-[420px] bg-brand/10 blur-[120px] group-hover:bg-brand/20 transition-all"></div>
+            <div class="absolute -left-24 -bottom-24 w-[500px] h-[500px] bg-accent/10 blur-[160px]"></div>
+            <div class="relative z-10 h-full flex flex-col justify-between">
+              <div>
+                <div class="text-[10px] font-mono text-brand tracking-[0.5em] uppercase mb-6">ARCHIVE_001</div>
+                <h3 class="text-6xl font-black italic tracking-tight leading-none">系统<br/>白皮书</h3>
+                <p class="mt-6 text-white/35 italic max-w-md">机制与规则的唯一权威入口，深度解析底层逻辑与共识协议。</p>
+              </div>
+              <div class="flex items-center gap-8">
+                <button class="bg-white text-dark px-10 py-5 font-black uppercase tracking-widest italic flex items-center gap-4 hover:scale-105 transition-transform">
+                  现在查阅 <i data-lucide="file-text"></i>
+                </button>
+                <span class="text-[10px] font-mono text-white/20 uppercase tracking-[0.3em]">Version 4.2.0-Alpha</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-5 grid grid-cols-1 gap-8">
+            <div class="glass-module p-10 flex items-start justify-between group">
+              <div>
+                <div class="text-[10px] font-mono text-white/25 tracking-[0.35em] uppercase mb-3">SOCIAL_NODES_LINK</div>
+                <div class="text-2xl font-black italic">官方入口</div>
+                <p class="text-white/30 text-[11px] mt-3 italic">官网、合约、社媒一键核验</p>
+              </div>
+              <i data-lucide="external-link" class="w-7 h-7 text-white/25 group-hover:text-brand transition-colors"></i>
+            </div>
+
+            <div class="glass-module p-10 flex items-start justify-between group">
+              <div>
+                <div class="text-[10px] font-mono text-white/25 tracking-[0.35em] uppercase mb-3">DEV_PROTOCOL_REPO</div>
+                <div class="text-2xl font-black italic">资料库</div>
+                <p class="text-white/30 text-[11px] mt-3 italic">教程、工具与参考资料合集</p>
+              </div>
+              <i data-lucide="database" class="w-7 h-7 text-white/25 group-hover:text-brand transition-colors"></i>
+            </div>
+
+            <div class="p-card p-10 border-l-2 border-l-accent/40 bg-accent/5 flex items-start justify-between">
+              <div>
+                <div class="text-[10px] font-mono text-accent/70 tracking-[0.35em] uppercase mb-3">SECURITY_AUDIT</div>
+                <div class="text-2xl font-black italic text-accent">安全/审计</div>
+                <p class="text-accent/50 text-[11px] mt-3 italic">披露与安全行动（占位示例）</p>
+              </div>
+              <i data-lucide="shield-alert" class="w-7 h-7 text-accent"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Resources: V9 卡片质感 + V12 轮播遮罩逻辑 -->
+      <section id="resources" class="mt-28">
+        <div class="flex items-center justify-between mb-12">
+          <div>
+            <div class="text-[11px] font-mono text-brand tracking-[0.45em] uppercase mb-4">RESOURCES FLOW</div>
+            <h2 class="text-4xl font-black italic tracking-tighter">资源推荐</h2>
+          </div>
+          <div class="flex gap-3">
+            <button id="resPrev" class="p-card px-4 py-2 hover:bg-brand hover:text-black transition-all"> <i data-lucide="arrow-left" class="w-4 h-4"></i> </button>
+            <button id="resNext" class="p-card px-4 py-2 hover:bg-brand hover:text-black transition-all"> <i data-lucide="arrow-right" class="w-4 h-4"></i> </button>
+          </div>
+        </div>
+
+        <div class="overflow-hidden" style="mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);">
+          <div id="resTrack" class="flex gap-8 transition-transform duration-[900ms]" style="will-change: transform;">
+            <div class="min-w-[420px] glass-module p-10 h-64 flex flex-col justify-between">
+              <div>
+                <div class="text-brand font-mono text-[9px] mb-4 tracking-[4px]">KB / FAQ</div>
+                <div class="text-2xl font-black italic">百问百答</div>
+                <p class="text-white/25 text-[11px] italic mt-4 leading-relaxed">常见问题快速诊断与解答方案。</p>
+              </div>
+              <div class="flex justify-between items-end border-t border-white/10 pt-6">
+                <span class="text-[10px] font-mono text-white/20 uppercase italic">HELP_DESK</span>
+                <span class="text-brand text-[10px] font-bold tracking-widest uppercase">Explore >></span>
+              </div>
+            </div>
+
+            <div class="min-w-[420px] glass-module p-10 h-64 flex flex-col justify-between">
+              <div>
+                <div class="text-brand font-mono text-[9px] mb-4 tracking-[4px]">ONBOARDING</div>
+                <div class="text-2xl font-black italic">新手必读</div>
+                <p class="text-white/25 text-[11px] italic mt-4 leading-relaxed">开启 Web4 之旅的关键注意事项。</p>
+              </div>
+              <div class="flex justify-between items-end border-t border-white/10 pt-6">
+                <span class="text-[10px] font-mono text-white/20 uppercase italic">START_HERE</span>
+                <i data-lucide="plus-circle" class="w-5 h-5 text-white/30"></i>
+              </div>
+            </div>
+
+            <div class="min-w-[420px] glass-module p-10 h-64 flex flex-col justify-between">
+              <div>
+                <div class="text-brand font-mono text-[9px] mb-4 tracking-[4px]">SAFE_GUARD</div>
+                <div class="text-2xl font-black italic">安全课堂</div>
+                <p class="text-white/25 text-[11px] italic mt-4 leading-relaxed">资产保护与防诈建议的系统指引。</p>
+              </div>
+              <div class="flex justify-between items-end border-t border-white/10 pt-6">
+                <span class="text-[10px] font-mono text-white/20 uppercase italic">EDU_LEVEL_01</span>
+                <i data-lucide="plus-circle" class="w-5 h-5 text-white/30"></i>
+              </div>
+            </div>
+
+            <div class="min-w-[420px] glass-module p-10 h-64 flex flex-col justify-between border-brand/30 bg-brand/5">
+              <div>
+                <div class="text-brand font-mono text-[9px] mb-4 tracking-[4px]">MATRIX</div>
+                <div class="text-2xl font-black italic">社交矩阵</div>
+                <p class="text-white/45 text-[11px] italic mt-4 leading-relaxed">X / Telegram / Discord / YouTube 入口矩阵。</p>
+              </div>
+              <div class="flex justify-between items-end border-t border-white/15 pt-6">
+                <span class="text-[10px] font-mono text-brand uppercase italic">Matrix_Link</span>
+                <i data-lucide="arrow-up-right" class="w-5 h-5 text-brand"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer id="footer" class="mt-28 pt-16 border-t border-white/10">
+        <div class="grid grid-cols-12 gap-12">
+          <div class="col-span-5">
+            <div class="text-2xl font-black italic mb-4 tracking-tighter">W/A HUB — V5 Hybrid</div>
+            <p class="text-[11px] text-white/30 leading-relaxed italic">本页是三套视觉方案的综合拼接版，用于快速试错与对齐信息层级。后续如果你选定方向，我可以把它拆成可合并进现有站点的组件。</p>
+          </div>
+          <div class="col-span-3">
+            <div class="text-[10px] font-mono text-brand tracking-[0.45em] uppercase mb-5">PAGES</div>
+            <div class="space-y-3 text-[11px] text-white/40">
+              <a class="block hover:text-white" href="#modules">Modules</a>
+              <a class="block hover:text-white" href="#resources">Resources</a>
+              <a class="block hover:text-white" href="./index.html">V5 Index</a>
+            </div>
+          </div>
+          <div class="col-span-4 flex flex-col items-end justify-between">
+            <div class="text-[10px] font-mono text-white/20 uppercase tracking-widest border border-white/10 px-4 py-2">Network_Status: OK_STABLE</div>
+            <p class="text-[10px] font-mono text-white/10 uppercase tracking-[0.5em]">© 2026 W/A HUB LOCAL PREVIEW</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+
+      // 1440px 缩放（小于 master width 时缩放）
+      const mainFrame = document.getElementById('main-frame');
+      const masterWidth = 1440;
+
+      const waitForFonts = () => {
+        const fonts = document.fonts;
+        if (!fonts || !fonts.ready) return Promise.resolve();
+        return Promise.race([
+          fonts.ready,
+          new Promise((resolve) => setTimeout(resolve, 800))
+        ]);
+      };
+
+      const waitForStableViewport = () => {
+        return new Promise((resolve) => {
+          let lastW = 0;
+          let stable = 0;
+          let frames = 0;
+          const maxFrames = 60;
+          const tick = () => {
+            frames += 1;
+            const w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+            const wRounded = Math.round(w * 100) / 100;
+            if (wRounded === lastW) stable += 1;
+            else stable = 0;
+            lastW = wRounded;
+            if (stable >= 2 || frames >= maxFrames) {
+              resolve();
+              return;
+            }
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+      };
+
+      const applyScale = () => {
+        const viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+        let scale = viewportWidth / masterWidth;
+        if (scale > 1) scale = 1;
+        scale = Math.round(scale * 10000) / 10000;
+        mainFrame.style.zoom = String(scale);
+      };
+
+      let scaleRaf = 0;
+      const requestScaleUpdate = () => {
+        if (scaleRaf) return;
+        scaleRaf = requestAnimationFrame(() => {
+          scaleRaf = 0;
+          applyScale();
+        });
+      };
+
+      window.addEventListener('resize', requestScaleUpdate);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', requestScaleUpdate);
+      }
+
+      Promise.all([waitForFonts(), waitForStableViewport()]).then(() => {
+        applyScale();
+        mainFrame.style.visibility = 'visible';
+        requestScaleUpdate();
+      });
+
+      // Side hub
+      const sideHub = document.getElementById('side-hub');
+      const langTrigger = document.getElementById('langTrigger');
+      const closeHub = document.getElementById('closeHub');
+
+      langTrigger.addEventListener('click', () => {
+        sideHub.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+
+      closeHub.addEventListener('click', () => {
+        sideHub.classList.remove('active');
+        document.body.style.overflow = '';
+      });
+
+      // Resources slider
+      const track = document.getElementById('resTrack');
+      const prev = document.getElementById('resPrev');
+      const next = document.getElementById('resNext');
+
+      let offset = 0;
+      const step = 420 + 32; // card width + gap
+
+      next.addEventListener('click', () => {
+        const max = (track.children.length - 2) * step;
+        if (Math.abs(offset) < max) {
+          offset -= step;
+          track.style.transform = `translateX(${offset}px)`;
+        }
+      });
+
+      prev.addEventListener('click', () => {
+        if (offset < 0) {
+          offset += step;
+          track.style.transform = `translateX(${offset}px)`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

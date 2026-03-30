@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="filename" content="index.html">
+    <title>W/A HUB 2026 - V9 Evolution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Noto+Sans+SC:wght@300;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#050505',
+                        brand: '#00FFD1',
+                        accent: '#BBFF00',
+                        panel: 'rgba(20, 20, 20, 0.8)'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    animation: {
+                        'glow-pulse': 'glow 4s ease-in-out infinite',
+                        'scan': 'scan 8s linear infinite',
+                    },
+                    keyframes: {
+                        glow: { '0%, 100%': { opacity: 0.3 }, '50%': { opacity: 0.6 } },
+                        scan: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(100%)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --brand-glow: rgba(0, 255, 209, 0.15);
+        }
+
+        body { 
+            background: #050505; 
+            color: #fff; 
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        /* 核心自适应容器 */
+        #adaptive-wrapper {
+            width: 1440px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            transform-origin: top center;
+            background: radial-gradient(circle at 50% 0%, var(--brand-glow) 0%, transparent 70%);
+            visibility: hidden;
+        }
+
+        .visual-noise {
+            position: fixed;
+            inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .glass-panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(0, 255, 209, 0.4);
+            background: rgba(255,255,255,0.07);
+            transform: translateY(-5px);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 20px rgba(0, 255, 209, 0.5);
+        }
+
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 255, 209, 0.2); border-radius: 10px; }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        /* V9 风格大标题 */
+        .hero-title {
+            font-size: 110px;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="visual-noise"></div>
+
+    <div id="adaptive-wrapper">
+        <!-- Header: 多语言与导航集成 -->
+        <header class="h-24 px-16 flex items-center justify-between sticky top-0 z-[100] backdrop-blur-xl border-b border-white/5">
+            <div class="flex items-center gap-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 border-2 border-brand rotate-45 flex items-center justify-center animate-pulse">
+                        <div class="w-4 h-4 bg-brand"></div>
+                    </div>
+                    <span class="text-2xl font-black italic tracking-tighter">W/A HUB</span>
+                </div>
+                <nav class="flex gap-10">
+                    <a href="#" class="text-[11px] font-mono tracking-widest text-white/40 hover:text-brand transition-colors uppercase italic font-bold">Protocol</a>
+                    <a href="#" class="text-[11px] font-mono tracking-widest text-white/40 hover:text-brand transition-colors uppercase italic font-bold">Assets_Vault</a>
+                    <a href="#" class="text-[11px] font-mono tracking-widest text-white/40 hover:text-brand transition-colors uppercase italic font-bold">Community</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-6">
+                <!-- 多语言入口 (翻译口子) -->
+                <div class="group relative">
+                    <button class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:border-brand transition-all">
+                        <i data-lucide="languages" class="w-4 h-4 text-brand"></i>
+                        <span class="text-[10px] font-mono uppercase font-bold tracking-tighter">NODE_ZH_CN</span>
+                        <i data-lucide="chevron-down" class="w-3 h-3 opacity-30"></i>
+                    </button>
+                    <!-- 下拉模拟 -->
+                    <div class="absolute right-0 top-full mt-2 w-40 glass-panel opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all p-2 rounded-xl">
+                        <div class="px-4 py-2 hover:bg-brand/10 hover:text-brand cursor-pointer text-[10px] uppercase font-bold italic">English_Node</div>
+                        <div class="px-4 py-2 hover:bg-brand/10 hover:text-brand cursor-pointer text-[10px] uppercase font-bold italic border-t border-white/5">Japanese_Econ</div>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-brand flex items-center justify-center cursor-pointer">
+                    <i data-lucide="user" class="text-dark w-5 h-5"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="px-16 pt-32 pb-20 relative overflow-hidden">
+            <div class="relative z-10 max-w-5xl">
+                <div class="inline-block px-4 py-1 bg-brand/10 border border-brand/30 rounded-full text-[10px] font-mono text-brand mb-8 animate-glow-pulse">
+                    CORE_V9_STABLE_PROTOCOL
+                </div>
+                <h1 class="hero-title mb-8">
+                    赋能品牌<br/>
+                    <span class="text-brand neon-text">创造卓越体验</span>
+                </h1>
+                <p class="text-xl text-white/40 max-w-2xl font-light leading-relaxed mb-12 italic">
+                    通过 Web4 构建无缝连接的去中心化生态，打破现实与数字世界的壁垒。我们不只是工具，我们是未来的基础设施。
+                </p>
+                <div class="flex gap-6">
+                    <button class="px-10 py-5 bg-brand text-dark font-black italic uppercase tracking-widest hover:brightness-110 transition-all rounded-sm">
+                        快速开始 <i data-lucide="arrow-right" class="inline ml-2 w-5 h-5"></i>
+                    </button>
+                    <button class="px-10 py-5 border border-white/20 text-white font-black italic uppercase tracking-widest hover:bg-white/5 transition-all rounded-sm">
+                        项目介绍
+                    </button>
+                </div>
+            </div>
+
+            <!-- 数据指示器 -->
+            <div class="flex gap-24 mt-32 border-t border-white/5 pt-12">
+                <div>
+                    <div class="text-5xl font-mono font-bold">100K+</div>
+                    <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Active_Users</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-mono font-bold">30%+</div>
+                    <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Revenue_Growth</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-mono font-bold">24/7</div>
+                    <div class="text-[10px] text-white/30 uppercase tracking-[0.3em] mt-2">Technical_Sync</div>
+                </div>
+            </div>
+        </section>
+
+        <!--核心板块一：官方白皮书与入口 (结合设计中的大卡片) -->
+        <section class="px-16 py-32 space-y-12">
+            <div class="flex justify-between items-end">
+                <h2 class="text-6xl font-black italic italic tracking-tighter uppercase">核心模块<br/><span class="text-white/20 text-4xl italic">Project_Modules</span></h2>
+            </div>
+
+            <div class="grid grid-cols-12 gap-8">
+                <!-- 白皮书主要入口 -->
+                <div class="col-span-8 group relative h-[500px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-1">
+                    <div class="h-full w-full bg-dark/80 rounded-[22px] p-20 flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-20 -top-20 w-[400px] h-[400px] bg-brand/10 blur-[100px] group-hover:bg-brand/20 transition-all"></div>
+                        <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=800&q=80" 
+                             class="absolute right-0 bottom-0 w-1/2 h-full object-cover opacity-20 grayscale group-hover:grayscale-0 transition-all duration-1000" />
+                        
+                        <div class="relative z-10 max-w-md">
+                            <span class="text-brand font-mono text-xs uppercase tracking-[0.5em] mb-4 block">Archive_001</span>
+                            <h3 class="text-6xl font-black italic uppercase mb-8">系统<br/>白皮书</h3>
+                            <p class="text-white/40 mb-10 leading-relaxed italic">机制与规则的唯一权威入口，深度解析 Web4 底层逻辑与共识协议。</p>
+                            <button class="bg-white text-dark px-10 py-5 font-black uppercase tracking-widest italic flex items-center gap-4 hover:scale-105 transition-transform">
+                                现在查阅 <i data-lucide="file-text"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 次要入口群组 -->
+                <div class="col-span-4 flex flex-col gap-8">
+                    <div class="flex-1 glass-panel p-10 flex flex-col justify-between group">
+                        <i data-lucide="external-link" class="w-8 h-8 text-white/20 group-hover:text-brand transition-colors"></i>
+                        <div>
+                            <h4 class="text-2xl font-black italic uppercase mb-2">官方入口</h4>
+                            <p class="text-xs text-white/30 uppercase italic">Social_Nodes_Link</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 glass-panel p-10 flex flex-col justify-between group">
+                        <i data-lucide="database" class="w-8 h-8 text-white/20 group-hover:text-brand transition-colors"></i>
+                        <div>
+                            <h4 class="text-2xl font-black italic uppercase mb-2">资料库</h4>
+                            <p class="text-xs text-white/30 uppercase italic">Dev_Protocol_Repo</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 glass-panel p-10 flex flex-col justify-between border-accent/20 bg-accent/5 group">
+                        <i data-lucide="shield-alert" class="w-8 h-8 text-accent"></i>
+                        <div>
+                            <h4 class="text-2xl font-black italic uppercase mb-2 text-accent">安全/审计</h4>
+                            <p class="text-xs text-accent/50 uppercase italic">Security_Audit_Level_Alpha</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 核心板块二：轮播资源 (模拟 V9 的卡片滑动感) -->
+        <section class="px-16 py-32 bg-white/[0.02]">
+            <div class="flex justify-between items-center mb-16">
+                <h2 class="text-5xl font-black italic italic uppercase tracking-tighter">资源板块推荐 <span class="text-brand/50 font-mono text-lg ml-6 italic">RESOURCES_FLOW</span></h2>
+                <div class="flex gap-4">
+                    <button class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-brand hover:text-dark transition-all"><i data-lucide="chevron-left"></i></button>
+                    <button class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-brand hover:text-dark transition-all"><i data-lucide="chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-8">
+                <!-- 轮播样式卡片 1 -->
+                <div class="glass-panel p-12 h-[480px] flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-bl-full group-hover:w-full group-hover:h-full group-hover:rounded-none transition-all duration-700 pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-brand flex items-center justify-center mb-8">
+                            <i data-lucide="book-open" class="text-dark"></i>
+                        </div>
+                        <h4 class="text-3xl font-black italic uppercase mb-4">百问百答</h4>
+                        <p class="text-sm text-white/40 italic leading-relaxed">面向合作伙伴与社区成员的常见问题快速诊断与解答方案。</p>
+                    </div>
+                    <div class="relative z-10 flex justify-between items-end border-t border-white/10 pt-8">
+                        <span class="text-[10px] font-mono opacity-30 italic">HELP_DESK_v2</span>
+                        <a href="#" class="text-brand text-xs font-bold tracking-widest uppercase hover:underline">Explore_More >></a>
+                    </div>
+                </div>
+
+                <!-- 轮播样式卡片 2 -->
+                <div class="glass-panel p-12 h-[480px] flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 border border-white/20 flex items-center justify-center mb-8 group-hover:border-brand transition-colors">
+                            <i data-lucide="graduation-cap" class="text-white/40 group-hover:text-brand transition-colors"></i>
+                        </div>
+                        <h4 class="text-3xl font-black italic uppercase mb-4">新手必读</h4>
+                        <p class="text-sm text-white/40 italic leading-relaxed">快速开启 Web4 之旅，全面规避初期交互风险与注意事项。</p>
+                    </div>
+                    <div class="flex justify-between items-end border-t border-white/10 pt-8 italic">
+                        <span class="text-[10px] font-mono opacity-30 uppercase italic">Onboarding_Sync</span>
+                        <i data-lucide="plus-circle" class="w-5 h-5 opacity-40 group-hover:opacity-100"></i>
+                    </div>
+                </div>
+
+                <!-- 轮播样式卡片 3 -->
+                <div class="glass-panel p-12 h-[480px] flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 border border-white/20 flex items-center justify-center mb-8 group-hover:border-brand transition-colors italic">
+                            <i data-lucide="shield-check" class="text-white/40 group-hover:text-brand transition-colors"></i>
+                        </div>
+                        <h4 class="text-3xl font-black italic uppercase mb-4">安全课堂</h4>
+                        <p class="text-sm text-white/40 italic leading-relaxed">针对资产保护与防诈建议，为您的数字主权提供全天候防御指引。</p>
+                    </div>
+                    <div class="flex justify-between items-end border-t border-white/10 pt-8">
+                        <span class="text-[10px] font-mono opacity-30 uppercase italic font-bold">Safe_Guard_A</span>
+                        <i data-lucide="plus-circle" class="w-5 h-5 opacity-40 group-hover:opacity-100"></i>
+                    </div>
+                </div>
+
+                <!-- 轮播样式卡片 4 -->
+                <div class="glass-panel p-12 h-[480px] flex flex-col justify-between border-brand/20 bg-brand/5 group">
+                    <div>
+                        <div class="w-14 h-14 bg-brand flex items-center justify-center mb-8 italic">
+                            <i data-lucide="share-2" class="text-dark"></i>
+                        </div>
+                        <h4 class="text-3xl font-black italic uppercase mb-4">社交矩阵</h4>
+                        <p class="text-sm text-white/70 italic leading-relaxed">X / Telegram / Discord / YouTube 官方频道与节点入口矩阵。</p>
+                    </div>
+                    <div class="flex justify-between items-end border-t border-white/20 pt-8">
+                        <span class="text-[10px] font-mono text-brand uppercase font-bold italic">Matrix_Link</span>
+                        <i data-lucide="arrow-up-right" class="text-brand"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="px-16 py-32 border-t border-white/10 relative overflow-hidden italic">
+            <div class="absolute bottom-0 right-0 text-[300px] font-black italic text-white/[0.02] leading-none select-none italic">2026</div>
+            <div class="grid grid-cols-12 gap-20 relative z-10">
+                <div class="col-span-4">
+                    <div class="flex items-center gap-3 mb-8 italic">
+                        <div class="w-6 h-6 border border-brand rotate-45"></div>
+                        <span class="text-xl font-black italic italic uppercase tracking-tighter">W/A HUB</span>
+                    </div>
+                    <p class="text-sm text-white/30 uppercase italic leading-loose tracking-widest italic">
+                        致力构建去中心化的数字世界节点。<br/>
+                        未来即此刻，权力归于用户。
+                    </p>
+                </div>
+                <div class="col-span-2">
+                    <h5 class="font-mono text-[10px] text-brand uppercase mb-10 tracking-[0.5em] font-bold">NAV_SYS</h5>
+                    <ul class="space-y-4 text-[11px] font-bold uppercase tracking-widest text-white/40">
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">主页</li>
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">资料库</li>
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">工具集</li>
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">治理</li>
+                    </ul>
+                </div>
+                <div class="col-span-2">
+                    <h5 class="font-mono text-[10px] text-brand uppercase mb-10 tracking-[0.5em] font-bold">CONNECT</h5>
+                    <ul class="space-y-4 text-[11px] font-bold uppercase tracking-widest text-white/40">
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">Twitter (X)</li>
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">Telegram</li>
+                        <li class="hover:text-brand cursor-pointer transition-colors italic">Discord</li>
+                    </ul>
+                </div>
+                <div class="col-span-4 flex flex-col items-end justify-between italic">
+                    <div class="text-[10px] font-mono text-white/20 uppercase tracking-widest border border-white/10 px-4 py-2 italic font-bold">
+                        Network_Status: OK_STABLE
+                    </div>
+                    <p class="text-[10px] font-mono text-white/10 uppercase tracking-[0.5em]">© 2026 W/A 中文资料库 ALL RIGHTS RESERVED.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 侧边浮停 -->
+    <div class="fixed right-8 top-1/2 -translate-y-1/2 flex flex-col gap-8 z-[200]">
+        <div class="w-px h-24 bg-gradient-to-b from-transparent via-brand to-transparent mx-auto italic"></div>
+        <div class="flex flex-col gap-6 items-center">
+            <span class="h-1 lg:h-2 w-1 lg:w-2 bg-brand rounded-full italic italic"></span>
+            <span class="h-1 lg:h-1 w-1 lg:w-1 bg-white/20 rounded-full italic"></span>
+            <span class="h-1 lg:h-1 w-1 lg:w-1 bg-white/20 rounded-full italic"></span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const wrapper = document.getElementById('adaptive-wrapper');
+            const targetWidth = 1440;
+
+            const waitForFonts = () => {
+                const fonts = document.fonts;
+                if (!fonts || !fonts.ready) return Promise.resolve();
+                return Promise.race([
+                    fonts.ready,
+                    new Promise((resolve) => setTimeout(resolve, 800))
+                ]);
+            };
+
+            const waitForStableViewport = () => {
+                return new Promise((resolve) => {
+                    let lastW = 0;
+                    let stable = 0;
+                    let frames = 0;
+                    const maxFrames = 60;
+                    const tick = () => {
+                        frames += 1;
+                        const w = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                        const wRounded = Math.round(w * 100) / 100;
+                        if (wRounded === lastW) stable += 1;
+                        else stable = 0;
+                        lastW = wRounded;
+                        if (stable >= 2 || frames >= maxFrames) {
+                            resolve();
+                            return;
+                        }
+                        requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                });
+            };
+
+            const applyScale = () => {
+                const viewportWidth = (window.visualViewport && window.visualViewport.width) ? window.visualViewport.width : document.documentElement.clientWidth;
+                let scale = viewportWidth / targetWidth;
+                if (scale > 1) scale = 1;
+                scale = Math.round(scale * 10000) / 10000;
+                wrapper.style.zoom = String(scale);
+            };
+
+            let scaleRaf = 0;
+            const requestScaleUpdate = () => {
+                if (scaleRaf) return;
+                scaleRaf = requestAnimationFrame(() => {
+                    scaleRaf = 0;
+                    applyScale();
+                });
+            };
+
+            window.addEventListener('resize', requestScaleUpdate);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', requestScaleUpdate);
+            }
+
+            Promise.all([waitForFonts(), waitForStableViewport()]).then(() => {
+                applyScale();
+                wrapper.style.visibility = 'visible';
+                requestScaleUpdate();
+            });
+
+            // 卡片微光追踪 (鼠标移动感)
+            document.querySelectorAll('.glass-panel').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    card.style.setProperty('--mouse-x', `${x}%`);
+                    card.style.setProperty('--mouse-y', `${y}%`);
+                    card.style.background = `radial-gradient(circle at ${x}% ${y}%, rgba(0, 255, 209, 0.08) 0%, rgba(20, 20, 20, 0.8) 60%)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.background = '';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
